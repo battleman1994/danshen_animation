@@ -1,89 +1,151 @@
-# 🎬 Danshen Animation（蛋生动画）
+<p align="center">
+  <img src="https://img.shields.io/badge/🔥-danshen_animation-ff6b6b?style=for-the-badge" alt="danshen_animation">
+</p>
 
-> 跨平台动漫风格视频生成工具 — 输入图片/文字/链接/热点视频，一键生成动漫版视频
+<h1 align="center">🔥 单身动画 — Danshen Animation</h1>
+<p align="center"><strong>AI 驱动的动漫风格视频生成器</strong></p>
 
-支持 **iOS** · **浏览器** · **Windows** 三大平台
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-iOS%20%7C%20Web%20%7C%20Windows-blue" alt="platforms">
+  <img src="https://img.shields.io/badge/python-3.10+-green" alt="python">
+  <img src="https://img.shields.io/badge/license-MIT-brightgreen" alt="license">
+</p>
 
 ---
 
-## ✨ 核心功能
+## 🎬 这是什么？
 
-| 功能 | 说明 |
+**单身动画** 是一个 AI 驱动的视频生成工具。你给它热点内容（图片、文字、链接、视频），它帮你生成**动漫风格**的配音视频。
+
+### 典型场景
+
+| 输入 | 输出 |
 |------|------|
-| 🖼️ 图片转动漫 | 上传任意图片，AI 转换为动漫风格并生成短视频 |
-| 📝 文字转动漫 | 输入文字描述，AI 根据语义生成匹配的动漫画面 |
-| 🔗 链接转动漫 | 粘贴网页/文章链接，自动提取内容生成动漫视频 |
-| 🔥 热点视频转动漫 | 输入热点视频 URL，转换为动漫风格二次创作 |
+| 🎵 抖音两个人搞笑对话 | 🐱 两只狸花猫演绎同样对话 |
+| 📰 热点新闻 | 🐻 可爱的动物严肃/可爱播报 |
+| 🖼️ 一张表情包 | 🎭 动漫角色配音演绎 |
+| 🔗 微博/小红书帖子 | 🦊 小狐狸配音朗读 |
 
 ---
 
-## 🎭 应用场景
+## 🏗️ 架构总览
 
-### 场景一：抖音对话 → 狸花猫剧场
+```
+┌──────────────────────────────────────────────────┐
+│                   输入端                          │
+│   📝 文字  🖼️ 图片  🔗 链接  🎵 视频URL         │
+└──────────────────┬───────────────────────────────┘
+                   ▼
+┌──────────────────────────────────────────────────┐
+│              AI 视频生成流水线                     │
+│                                                   │
+│  ① 内容提取 → ② 脚本改编 → ③ 角色生成            │
+│         → ④ 语音合成 → ⑤ 视频合成                │
+└──────────────────┬───────────────────────────────┘
+                   ▼
+┌──────────────────────────────────────────────────┐
+│                   输出端                          │
+│     iOS App  │  Web 浏览器  │  Windows 桌面       │
+└──────────────────────────────────────────────────┘
+```
 
-> 将抖音上两人对话视频，转换生成 **两只狸花猫对话** 的动漫版视频
+### AI 流水线详解
 
-原始视频中的人物自动识别，替换为可爱狸花猫形象，口型、表情、动作均由 AI 驱动匹配。
-
-### 场景二：热点新闻 → 动物播报
-
-> 将热点新闻自动转为 **动物主播播报**，根据新闻严肃程度智能匹配播报风格
-
-| 新闻类型 | 匹配动物 | 播报风格 |
-|---------|---------|---------|
-| 🟢 娱乐八卦 | 柴犬 🐕 | 轻松调侃 |
-| 🟡 社会民生 | 猫头鹰 🦉 | 温和稳重 |
-| 🟠 财经科技 | 企鹅 🐧 | 严谨专业 |
-| 🔴 重大事件 | 雄狮 🦁 | 庄重严肃 |
-
----
-
-## 🏗️ 技术栈
-
-- **前端**: Flutter（iOS）/ React（Web）/ Electron（Windows）
-- **AI 引擎**: Stable Diffusion + ControlNet / AnimateDiff
-- **语音合成**: VITS / RVC 声音克隆
-- **口型同步**: Wav2Lip / SadTalker
-- **视频处理**: FFmpeg
+1. **内容提取** (`extractor`) — Whisper 转写音频、OCR 识别图片文字、爬虫抓取链接内容、LLM 理解语义
+2. **脚本改编** (`adapter`) — LLM 将原始内容改写为适合动漫角色的脚本，保留原意，适配角色语气
+3. **角色生成** (`character`) — ComfyUI / Stable Diffusion 生成动漫动物角色（狸花猫🐱、狐狸🦊、熊猫🐼...）
+4. **语音合成** (`voice`) — TTS 引擎合成配音，匹配内容情绪（开心/严肃/搞笑）
+5. **视频合成** (`composer`) — FFmpeg / MoviePy 组合角色动画 + 配音 + 字幕 + 背景
 
 ---
 
 ## 🚀 快速开始
 
+### 后端
+
 ```bash
-# 克隆项目
-git clone https://github.com/battleman1994/danshen_animation.git
-cd danshen_animation
+cd backend
+pip install -e ".[dev]"
+uvicorn src.main:app --reload
+```
 
-# 安装依赖
-pip install -r requirements.txt
+### Web 前端
 
-# 启动开发服务器
-python app.py
+```bash
+cd web
+npm install
+npm run dev
+```
+
+### iOS
+
+```bash
+cd ios/DanshenAnimation
+open DanshenAnimation.xcodeproj
+```
+
+### Windows
+
+```bash
+cd windows/electron
+npm install
+npm start
 ```
 
 ---
 
-## 📱 平台支持
+## 📂 项目结构
 
-| 平台 | 状态 | 入口 |
-|------|------|------|
-| iOS | 🚧 开发中 | Flutter App |
-| 浏览器 | 🚧 开发中 | Web App |
-| Windows | 🚧 开发中 | Electron 桌面应用 |
+```
+danshen_animation/
+├── backend/               # Python FastAPI 后端
+│   ├── src/
+│   │   ├── main.py        # FastAPI 入口
+│   │   ├── config.py      # 配置管理
+│   │   ├── pipeline/      # 🔥 AI 视频生成流水线
+│   │   │   ├── extractor.py    # 内容提取
+│   │   │   ├── adapter.py      # 脚本改编
+│   │   │   ├── character.py    # 角色生成
+│   │   │   ├── voice.py        # 语音合成
+│   │   │   └── composer.py     # 视频合成
+│   │   ├── models/        # 数据模型
+│   │   ├── routes/        # API 路由
+│   │   └── utils/         # 工具函数
+│   └── tests/
+├── web/                   # Next.js Web 前端
+├── ios/                   # SwiftUI iOS App
+├── windows/               # Electron Windows 桌面端
+├── shared/                # 共享类型定义
+└── docs/                  # 文档
+```
+
+---
+
+## 🛠️ 技术栈
+
+| 层级 | 技术 |
+|------|------|
+| 后端框架 | Python + FastAPI |
+| AI 模型 | Whisper, LLM (DeepSeek/OpenAI), Stable Diffusion |
+| 语音合成 | Edge TTS / ElevenLabs / Coqui TTS |
+| 视频合成 | FFmpeg + MoviePy |
+| Web 前端 | Next.js + React + TailwindCSS |
+| iOS | SwiftUI |
+| Windows | Electron + React |
+| 任务队列 | Celery + Redis |
+
+---
+
+## 📋 开发计划
+
+详见 [docs/plan.md](docs/plan.md)
 
 ---
 
 ## 🤝 贡献
 
-欢迎提交 Issue 和 Pull Request！请先查看 [贡献指南](CONTRIBUTING.md)。
-
----
+欢迎提交 Issue 和 PR！
 
 ## 📄 许可证
 
 MIT License
-
----
-
-<p align="center">Made with ❤️ by battleman1994</p>

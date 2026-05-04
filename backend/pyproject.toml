@@ -1,0 +1,50 @@
+[project]
+name = "danshen-animation"
+version = "0.1.0"
+description = "AI-powered anime-style video generator"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "battleman1994"}
+]
+keywords = ["ai", "animation", "anime", "video-generation", "tts"]
+
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.1.0",
+    "celery[redis]>=5.3.0",
+    "redis>=5.0.0",
+    "httpx>=0.27.0",
+    "python-multipart>=0.0.9",
+    "aiofiles>=23.2.0",
+    "moviepy>=2.0.0",
+    "Pillow>=10.0.0",
+    "openai>=1.12.0",
+    "faster-whisper>=1.0.0",
+    "yt-dlp>=2024.0.0",
+    "edge-tts>=6.1.0",
+    "boto3>=1.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
