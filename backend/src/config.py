@@ -67,6 +67,15 @@ class Settings(BaseSettings):
         "shiba_inu": {"name": "柴犬", "emoji": "🐶", "style": "忠诚阳光"},
         "owl": {"name": "猫头鹰", "emoji": "🦉", "style": "智慧专业"},
         "penguin": {"name": "企鹅", "emoji": "🐧", "style": "憨态可掬"},
+        "lion": {"name": "雄狮", "emoji": "🦁", "style": "庄重威严"},
+    }
+
+    # ── 新闻分级 → 动物映射 ──
+    news_animal_mapping: dict = {
+        "entertainment": {"character": "shiba_inu", "name": "柴犬", "emoji": "🐕", "style": "轻松调侃"},
+        "social": {"character": "owl", "name": "猫头鹰", "emoji": "🦉", "style": "温和稳重"},
+        "finance_tech": {"character": "penguin", "name": "企鹅", "emoji": "🐧", "style": "严谨专业"},
+        "major_event": {"character": "lion", "name": "雄狮", "emoji": "🦁", "style": "庄重严肃"},
     }
 
     model_config = {

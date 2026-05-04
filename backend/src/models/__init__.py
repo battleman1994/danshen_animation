@@ -20,6 +20,7 @@ class SourceType(str, Enum):
     WEB_LINK = "web_link"
     IMAGE = "image"
     WEIBO_POST = "weibo_post"
+    NEWS = "news"
 
 
 class TaskStatus(str, Enum):
@@ -42,6 +43,7 @@ class Character(str, Enum):
     SHIBA_INU = "shiba_inu"
     OWL = "owl"
     PENGUIN = "penguin"
+    LION = "lion"
 
 
 class Emotion(str, Enum):

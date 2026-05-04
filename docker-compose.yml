@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # ── Redis (Celery broker + result backend) ──
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # ── FastAPI 后端 ──
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    env_file:
+      - backend/.env
+    volumes:
+      - ./output:/app/output
+      - ./backend/src:/app/src
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # ── Celery Worker（视频生成任务） ──
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A src.worker worker --loglevel=info --concurrency=2
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    env_file:
+      - backend/.env
+    volumes:
+      - ./output:/app/output
+      - ./backend/src:/app/src
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # ── Next.js Web 前端 ──
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  redis_data:

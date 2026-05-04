@@ -22,13 +22,13 @@ class AnimateRequest(BaseModel):
     source: str = Field(..., description="输入内容：文字/URL/图片路径", min_length=1, max_length=5000)
     source_type: str = Field(
         default="text",
-        description="内容类型：text, douyin_video, bilibili_video, web_link, image, weibo_post",
-        pattern="^(text|douyin_video|bilibili_video|youtube_video|web_link|image|weibo_post)$"
+        description="内容类型：text, douyin_video, bilibili_video, web_link, image, weibo_post, news",
+        pattern="^(text|douyin_video|bilibili_video|youtube_video|web_link|image|weibo_post|news)$"
     )
     character: str = Field(
         default="tabby_cat",
-        description="角色：tabby_cat, brown_bear, little_fox, panda, rabbit, shiba_inu, owl, penguin",
-        pattern="^(tabby_cat|brown_bear|little_fox|panda|rabbit|shiba_inu|owl|penguin)$"
+        description="角色：tabby_cat, brown_bear, little_fox, panda, rabbit, shiba_inu, owl, penguin, lion",
+        pattern="^(tabby_cat|brown_bear|little_fox|panda|rabbit|shiba_inu|owl|penguin|lion)$"
     )
     character_count: int = Field(default=2, ge=1, le=5, description="角色数量")
     style: str = Field(default="auto", description="风格：auto, funny, serious, cute, news")
@@ -95,10 +95,23 @@ async def _process_task(task_id: str):
         task["progress"] = 30
         adapter = ScriptAdapter()
         style = req["style"] if req["style"] != "auto" else _auto_style(content.emotion)
-        script = await adapter.adapt(
-            content, character=req["character"],
-            character_count=req["character_count"], style=style,
-        )
+
+        # 新闻类型特殊处理：用新闻分析器自动匹配角色
+        if req["source_type"] == "news":
+            if content.news_analysis:
+                news_char = content.news_analysis.get("suggested_character", req["character"])
+                broadcast_style = content.news_analysis.get("broadcast_style", "轻松调侃")
+                script = await adapter.adapt_news(
+                    content, character=news_char, broadcast_style=broadcast_style,
+                )
+                req["character"] = news_char  # 更新为分析出的角色
+            else:
+                script = await adapter.adapt_news(content, character=req["character"])
+        else:
+            script = await adapter.adapt(
+                content, character=req["character"],
+                character_count=req["character_count"], style=style,
+            )
 
         # 阶段 3：角色生成
         task["status"] = "generating_characters"

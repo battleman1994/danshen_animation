@@ -24,14 +24,15 @@ from ..config import settings
 class ExtractedContent:
     """提取后的内容"""
     text: str                       # 主要文本内容
-    source_type: str                # douyin_video, image, web_link, text
+    source_type: str                # douyin_video, image, web_link, text, news
     source_url: Optional[str] = None
     title: Optional[str] = None
-    speakers: Optional[list[dict]] = None  # 对话者信息 [{role, text, emotion}]
+    speakers: Optional[list[dict]] = None  # 对话者信息 [{role, text, emotion, start_time, end_time}]
     emotion: str = "neutral"        # happy, sad, funny, serious, neutral
     keywords: list[str] = None      # 关键词
     raw_audio_path: Optional[Path] = None
     raw_video_path: Optional[Path] = None
+    news_analysis: Optional[dict] = None  # 新闻分析结果（仅 news 类型）
 
     def __post_init__(self):
         if self.keywords is None:
@@ -57,6 +58,7 @@ class ContentExtractor:
             "web_link": self._from_web_link,
             "text": self._from_text,
             "weibo_post": self._from_weibo,
+            "news": self._from_news,
         }
         handler = extractors.get(source_type, self._from_text)
         return await handler(source)
@@ -110,23 +112,72 @@ class ContentExtractor:
         )
 
     async def _from_web_link(self, url: str) -> ExtractedContent:
-        """从网页链接提取内容"""
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, follow_redirects=True, timeout=30)
-            html = resp.text
-
-        # 简化的内容提取（生产环境可用 trafilatura 或 readability）
+        """从网页链接提取内容（使用 trafilatura 高质量提取）"""
         title = ""
-        text = html[:5000]  # 简化处理
+        text = ""
 
-        # LLM 摘要
-        analysis = await self._analyze_content(text)
+        # 优先使用 trafilatura 进行高质量内容提取
+        try:
+            import trafilatura
+            downloaded = trafilatura.fetch_url(url)
+            if downloaded:
+                result = trafilatura.extract(
+                    downloaded,
+                    include_links=False,
+                    include_images=False,
+                    include_tables=True,
+                    output_format="markdown",
+                )
+                if result:
+                    text = result
+                    # 尝试提取标题
+                    metadata = trafilatura.extract(
+                        downloaded,
+                        output_format="json",
+                        include_links=False,
+                    )
+                    if metadata:
+                        import json as _json
+                        try:
+                            meta = _json.loads(metadata)
+                            title = meta.get("title", "")
+                        except Exception:
+                            pass
+        except ImportError:
+            pass
+
+        # 回退到 httpx 直接抓取
+        if not text:
+            try:
+                async with httpx.AsyncClient() as client:
+                    resp = await client.get(
+                        url,
+                        follow_redirects=True,
+                        timeout=30,
+                        headers={
+                            "User-Agent": (
+                                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                "Chrome/120.0.0.0 Safari/537.36"
+                            ),
+                        },
+                    )
+                    html = resp.text
+                    # 简单去标签
+                    import re
+                    text = re.sub(r"<[^>]+>", " ", html)
+                    text = re.sub(r"\s+", " ", text).strip()
+            except Exception:
+                text = f"[无法访问: {url}]"
+
+        # LLM 分析
+        analysis = await self._analyze_content(text[:3000])
 
         return ExtractedContent(
-            text=text,
+            text=text[:5000],
             source_type="web_link",
             source_url=url,
-            title=title,
+            title=title or analysis.get("summary", ""),
             emotion=analysis.get("emotion", "neutral"),
             keywords=analysis.get("keywords", []),
         )
@@ -153,8 +204,44 @@ class ContentExtractor:
         """从微博提取"""
         return await self._from_web_link(url)
 
+    async def _from_news(self, source: str) -> ExtractedContent:
+        """处理新闻内容（URL 或文字）"""
+        from .news_analyzer import NewsAnalyzer
+
+        # 如果是 URL，先抓取内容
+        if source.startswith("http"):
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(source, follow_redirects=True, timeout=30)
+                html = resp.text
+                # 简化内容提取
+                text = html[:5000]
+        else:
+            text = source
+
+        # 新闻分析
+        analyzer = NewsAnalyzer()
+        analysis = await analyzer.analyze(text, source if source.startswith("http") else None)
+
+        return ExtractedContent(
+            text=text,
+            source_type="news",
+            source_url=source if source.startswith("http") else None,
+            title=analysis.title,
+            emotion=analysis.emotion,
+            keywords=analysis.keywords,
+            news_analysis={
+                "category": analysis.category,
+                "severity": analysis.severity,
+                "suggested_character": analysis.suggested_character,
+                "broadcast_style": analysis.broadcast_style,
+                "summary": analysis.summary,
+                "read_time": analysis.read_time,
+                "data_points": analysis.data_points,
+            },
+        )
+
     async def _transcribe_with_speakers(self, audio_path: Path) -> tuple[str, list[dict]]:
-        """Whisper 转写 + 说话人分离"""
+        """Whisper 转写 + 说话人分离（基于时间戳的简单切分）"""
         try:
             from faster_whisper import WhisperModel
             model = WhisperModel(
@@ -163,9 +250,32 @@ class ContentExtractor:
                 compute_type="int8",
             )
             segments, info = model.transcribe(str(audio_path), beam_size=5, language="zh")
-            text = " ".join(seg.text for seg in segments)
-            # TODO: 集成说话人分离 (pyannote-audio)
-            return text, []
+
+            full_text_parts = []
+            speaker_segments = []
+            current_speaker = 0
+            speaker_counter = 0
+            last_end = 0.0
+
+            for seg in segments:
+                gap = seg.start - last_end
+                if gap > 0.5 and last_end > 0:
+                    speaker_counter += 1
+                    current_speaker = speaker_counter % 2
+
+                speaker_name = "角色A" if current_speaker == 0 else "角色B"
+                full_text_parts.append(seg.text)
+                speaker_segments.append({
+                    "role": speaker_name,
+                    "text": seg.text.strip(),
+                    "emotion": "neutral",
+                    "start_time": seg.start,
+                    "end_time": seg.end,
+                })
+                last_end = seg.end
+
+            full_text = " ".join(full_text_parts)
+            return full_text, speaker_segments
         except ImportError:
             return "[需要安装 faster-whisper]", []
 
