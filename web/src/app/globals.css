@@ -2,18 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Figma 启发的全局样式 ===== */
+
 :root {
-  --foreground: #1a1a2e;
-  --background: #ffffff;
+  --foreground: #171717;
+  --background: #fafafa;
+  --muted: #737373;
+  --border: #e5e5e5;
+  --ring: rgba(168, 85, 247, 0.3);
+}
+
+* {
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
 }
 
+/* ===== Figma 式焦点环 — 虚线 ===== */
+*:focus-visible {
+  outline: 2px dashed rgba(168, 85, 247, 0.5);
+  outline-offset: 2px;
+}
+
+/* ===== 玻璃卡片效果 ===== */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== 渐变文字工具类 ===== */
+.text-gradient {
+  background: linear-gradient(135deg, #a855f7 0%, #d946ef 40%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Hero 渐变背景 ===== */
+.hero-gradient {
+  background: linear-gradient(
+    135deg,
+    #faf5ff 0%,
+    #fdf2f8 30%,
+    #fce7f3 60%,
+    #faf5ff 100%
+  );
+}
+
+/* ===== 进度条渐变 ===== */
+.progress-gradient {
+  background: linear-gradient(90deg, #a855f7, #d946ef, #f472b6);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ===== 按钮基础样式 ===== */
+.btn-pill {
+  border-radius: 50px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-pill:active {
+  transform: scale(0.97);
+}
+
+.btn-pill:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== 选择卡片悬停 ===== */
+.select-card {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.select-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.1);
+}
+
+.select-card:active {
+  transform: scale(0.97);
+}
+
+/* ===== 视频容器 ===== */
+.video-container video {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ===== 自定义滚动条 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}
+
+/* ===== Tailwind 扩展 ===== */
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -1,12 +1,17 @@
-// 单身动画 — 主要动画生成页面（增强版）
-// 支持场景切换：对话剧场 / 新闻播报 / 自由模式
+// 蛋生动画 — AI 动漫视频生成器（UI Redesign v2）
+// 设计系统融合：Lovable 温暖基底 + Figma 渐变活力
+// 功能完全不变，仅重构视觉层
 
 'use client';
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Upload, Link, Type, Play, Newspaper, MessageCircle, Zap, Download, RotateCcw } from 'lucide-react';
+import {
+  Sparkles, Upload, Link, Type, Play,
+  Newspaper, MessageCircle, Zap, Download, RotateCcw,
+} from 'lucide-react';
 
+// ── 角色数据 ──────────────────────────────────────────
 const CHARACTERS = [
   { id: 'tabby_cat', name: '狸花猫', emoji: '🐱', style: '活泼灵巧' },
   { id: 'brown_bear', name: '棕熊', emoji: '🐻', style: '稳重憨厚' },
@@ -19,12 +24,14 @@ const CHARACTERS = [
   { id: 'lion', name: '雄狮', emoji: '🦁', style: '庄重威严' },
 ];
 
+// ── 场景模式 ──────────────────────────────────────────
 const SCENES = [
   { id: 'auto', name: '智能识别', icon: Zap, desc: 'AI 自动选择最佳模式' },
   { id: 'dialogue', name: '对话剧场', icon: MessageCircle, desc: '抖音对话 → 动物演绎' },
   { id: 'news', name: '新闻播报', icon: Newspaper, desc: '热点新闻 → 动物主播' },
 ];
 
+// ── 输入方式标签 ──────────────────────────────────────
 const INPUT_TABS = [
   { type: 'text', icon: Type, label: '文字' },
   { type: 'web_link', icon: Link, label: '链接' },
@@ -34,6 +41,23 @@ const INPUT_TABS = [
 
 type SceneMode = 'auto' | 'dialogue' | 'news';
 type SourceType = 'text' | 'web_link' | 'image' | 'douyin_video';
+
+// ── 样式常量（代替行内 Tailwind 拼接，保持可维护性）──
+const styles = {
+  // 卡片
+  card: 'bg-white rounded-2xl border border-[#f0e6d8] shadow-sm p-6',
+  // 活跃的 pill tab
+  pillActive:
+    'flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium text-white shadow-md transition-all',
+  // 非活跃 pill tab
+  pillInactive:
+    'flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all bg-[#f5efe5] text-[#7a7a7a] hover:bg-[#efe5d5] hover:text-[#5a5a5a]',
+  // 主要按钮
+  btnPrimary:
+    'w-full py-4 px-8 rounded-2xl font-bold text-lg text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed',
+  // section 标题
+  sectionTitle: 'text-sm font-semibold text-[#7a7a7a] mb-3 uppercase tracking-wider',
+};
 
 export default function Home() {
   const [sceneMode, setSceneMode] = useState<SceneMode>('auto');
@@ -47,6 +71,7 @@ export default function Home() {
   const [statusText, setStatusText] = useState('');
   const [result, setResult] = useState<string | null>(null);
 
+  // ── 提交逻辑（完全不变）──
   const handleSubmit = async () => {
     if (!source.trim()) return;
     setLoading(true);
@@ -73,7 +98,6 @@ export default function Home() {
         throw new Error('任务创建失败');
       }
 
-      // 轮询等待
       const poll = async () => {
         try {
           const statusRes = await fetch(`/api/v1/tasks/${data.task_id}`);
@@ -119,149 +143,207 @@ export default function Home() {
     return labels[status] || status;
   };
 
+  // ── UI 渲染 ──────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        {/* Header */}
+    <main className="min-h-screen" style={{ background: '#fef9f0' }}>
+      <div className="max-w-2xl mx-auto px-4 py-8 md:py-12">
+
+        {/* ═══════ Header ═══════ */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -24 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+          {/* Logo / 标题 */}
+          <h1
+            className="text-5xl md:text-6xl font-bold mb-3 tracking-tight"
+            style={{
+              background: 'linear-gradient(135deg, #ff6b6b 0%, #ffa07a 40%, #a78bfa 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
             🔥 蛋生动画
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-lg text-[#7a7a7a] max-w-lg mx-auto leading-relaxed">
             AI 驱动的动漫风格视频生成器 — 输入热点，生成萌宠视频！
           </p>
         </motion.div>
 
-        {/* Scene Mode Selector */}
+        {/* ═══════ 场景模式选择 ═══════ */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.08 }}
           className="mb-6"
         >
-          <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">
-            选择场景模式
-          </h3>
+          <h3 className={styles.sectionTitle}>选择场景模式</h3>
           <div className="grid grid-cols-3 gap-3">
             {SCENES.map((scene) => {
               const Icon = scene.icon;
+              const isActive = sceneMode === scene.id;
               return (
-                <button
+                <motion.button
                   key={scene.id}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setSceneMode(scene.id as SceneMode)}
-                  className={`p-4 rounded-2xl text-center transition-all ${
-                    sceneMode === scene.id
-                      ? 'bg-purple-600 text-white shadow-lg scale-105'
-                      : 'bg-white text-gray-600 hover:bg-purple-50 shadow'
+                  className={`relative p-4 rounded-2xl text-center transition-all cursor-pointer ${
+                    isActive
+                      ? 'text-white shadow-lg'
+                      : 'bg-white text-[#5a5a5a] border border-[#f0e6d8] hover:border-[#e0d4c0] shadow-sm'
                   }`}
+                  style={
+                    isActive
+                      ? { background: 'linear-gradient(135deg, #ff6b6b, #ffa07a, #a78bfa)' }
+                      : undefined
+                  }
                 >
-                  <Icon size={24} className="mx-auto mb-1" />
+                  <Icon size={22} className="mx-auto mb-1.5" />
                   <div className="font-semibold text-sm">{scene.name}</div>
-                  <div className="text-xs mt-1 opacity-75">{scene.desc}</div>
-                </button>
+                  <div className={`text-xs mt-1 ${isActive ? 'opacity-85' : 'text-[#a8a8a8]'}`}>
+                    {scene.desc}
+                  </div>
+                </motion.button>
               );
             })}
           </div>
         </motion.div>
 
-        {/* Source Input */}
+        {/* ═══════ 输入区域 ═══════ */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15 }}
-          className="bg-white rounded-2xl shadow-xl p-6 mb-6"
+          transition={{ delay: 0.12 }}
+          className="bg-white rounded-2xl border border-[#f0e6d8] shadow-sm p-6 mb-6"
         >
-          {/* Input Tabs */}
+          {/* 输入方式 Tabs — Pill 风格 */}
           <div className="flex gap-2 mb-4 flex-wrap">
             {INPUT_TABS.map(({ type, icon: Icon, label }) => (
-              <button
+              <motion.button
                 key={type}
+                whileHover={{ scale: sourceType !== type ? 1.04 : 1 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => setSourceType(type)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all ${
+                className={
+                  sourceType === type ? styles.pillActive : styles.pillInactive
+                }
+                style={
                   sourceType === type
-                    ? 'bg-purple-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-purple-100'
-                }`}
+                    ? { background: 'linear-gradient(135deg, #ff6b6b, #ffa07a)' }
+                    : undefined
+                }
               >
                 <Icon size={16} />
                 {label}
-              </button>
+              </motion.button>
             ))}
           </div>
 
+          {/* 文本输入框 — 温暖风格 */}
           <textarea
             value={source}
             onChange={(e) => setSource(e.target.value)}
             placeholder={getPlaceholder(sourceType, sceneMode)}
-            className="w-full h-32 p-4 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 text-base"
+            className="w-full h-32 p-4 bg-[#fef9f0] border border-[#f0e6d8] rounded-xl resize-none
+                       focus:outline-none focus:border-[#ffa07a] focus:ring-2 focus:ring-[#ffa07a]/20
+                       text-[#2d2d2d] placeholder-[#c0b8a8] text-base transition-all"
           />
         </motion.div>
 
         <AnimatePresence>
-          {/* Character Selection (hidden in news mode) */}
+          {/* ═══════ 角色选择（非新闻模式） ═══════ */}
           {sceneMode !== 'news' && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="bg-white rounded-2xl shadow-xl p-6 mb-6 overflow-hidden"
+              className="bg-white rounded-2xl border border-[#f0e6d8] shadow-sm p-6 mb-6 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">选择角色</h3>
+                <h3 className="text-lg font-semibold text-[#2d2d2d]">🎭 选择角色</h3>
                 {sceneMode === 'dialogue' && (
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">角色数:</span>
+                    <span className="text-sm text-[#7a7a7a]">角色数:</span>
                     {[1, 2, 3].map((n) => (
-                      <button
+                      <motion.button
                         key={n}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.92 }}
                         onClick={() => setCharacterCount(n)}
-                        className={`w-8 h-8 rounded-full text-sm font-bold transition-all ${
+                        className="w-8 h-8 rounded-full text-sm font-bold transition-all"
+                        style={
                           characterCount === n
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-500 hover:bg-purple-100'
-                        }`}
+                            ? {
+                                background: 'linear-gradient(135deg, #ff6b6b, #ffa07a)',
+                                color: 'white',
+                                boxShadow: '0 2px 6px rgba(255,107,107,0.3)',
+                              }
+                            : {
+                                background: '#f5efe5',
+                                color: '#7a7a7a',
+                              }
+                        }
                       >
                         {n}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 )}
               </div>
+
+              {/* 角色网格 — 卡片 + 选中态渐变边框 */}
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                {CHARACTERS.map((char) => (
-                  <button
-                    key={char.id}
-                    onClick={() => setCharacter(char.id)}
-                    className={`p-3 rounded-xl text-center transition-all ${
-                      character === char.id
-                        ? 'bg-purple-100 ring-2 ring-purple-400 scale-105'
-                        : 'bg-gray-50 hover:bg-purple-50'
-                    }`}
-                  >
-                    <div className="text-3xl mb-1">{char.emoji}</div>
-                    <div className="text-xs text-gray-600">{char.name}</div>
-                  </button>
-                ))}
+                {CHARACTERS.map((char) => {
+                  const isSelected = character === char.id;
+                  return (
+                    <motion.button
+                      key={char.id}
+                      whileHover={{ scale: 1.06 }}
+                      whileTap={{ scale: 0.94 }}
+                      onClick={() => setCharacter(char.id)}
+                      className="relative p-3 rounded-xl text-center transition-all cursor-pointer"
+                      style={
+                        isSelected
+                          ? {
+                              background: 'white',
+                              boxShadow:
+                                '0 0 0 2px rgba(255,107,107,0.5), 0 0 0 4px rgba(255,107,107,0.1), 0 2px 8px rgba(255,107,107,0.15)',
+                            }
+                          : {
+                              background: '#faf7f0',
+                              border: '1px solid #f0e6d8',
+                            }
+                      }
+                    >
+                      <div className="text-3xl mb-1">{char.emoji}</div>
+                      <div className={`text-xs font-medium ${isSelected ? 'text-[#ff6b6b]' : 'text-[#7a7a7a]'}`}>
+                        {char.name}
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
 
-          {/* News mode hint */}
+          {/* ═══════ 新闻模式提示 ═══════ */}
           {sceneMode === 'news' && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-5 mb-6 border border-amber-200"
+              className="relative rounded-2xl p-5 mb-6 border overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #fff8f0, #fff5ea)',
+                borderColor: '#f0d8b8',
+              }}
             >
-              <div className="flex items-start gap-3">
-                <Newspaper size={24} className="text-amber-600 mt-1 flex-shrink-0" />
+              <div className="flex items-start gap-3 relative z-10">
+                <Newspaper size={24} className="text-[#e8985a] mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-amber-800 mb-1">📰 新闻播报模式</h4>
-                  <p className="text-sm text-amber-700">
+                  <h4 className="font-semibold text-[#8b5e34] mb-1">📰 新闻播报模式</h4>
+                  <p className="text-sm text-[#a07848]">
                     AI 会根据新闻的严肃程度自动匹配动物主播：<br />
                     🟢 娱乐八卦 → 🐶 柴犬 &nbsp; 🟡 社会民生 → 🦉 猫头鹰<br />
                     🟠 财经科技 → 🐧 企鹅 &nbsp; 🔴 重大事件 → 🦁 雄狮
@@ -272,10 +354,14 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-        {/* Style Selector (dialogue mode) */}
+        {/* ═══════ 风格选择（对话模式） ═══════ */}
         {sceneMode === 'dialogue' && (
-          <div className="bg-white rounded-2xl shadow-xl p-4 mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 mb-2">风格</h3>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl border border-[#f0e6d8] shadow-sm p-4 mb-6"
+          >
+            <h3 className={styles.sectionTitle}>风格</h3>
             <div className="flex gap-2 flex-wrap">
               {[
                 { id: 'auto', label: '🤖 自动' },
@@ -283,35 +369,44 @@ export default function Home() {
                 { id: 'serious', label: '🎯 严肃' },
                 { id: 'cute', label: '💕 可爱' },
               ].map((s) => (
-                <button
+                <motion.button
                   key={s.id}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => setStyle(s.id)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all ${
+                  className={
+                    style === s.id ? styles.pillActive : styles.pillInactive
+                  }
+                  style={
                     style === s.id
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-purple-100'
-                  }`}
+                      ? { background: 'linear-gradient(135deg, #a78bfa, #7c6df0)' }
+                      : undefined
+                  }
                 >
                   {s.label}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* Submit Button */}
+        {/* ═══════ 提交按钮 — 渐变动画 ═══════ */}
         <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={!loading && source.trim() ? { scale: 1.02 } : {}}
+          whileTap={!loading && source.trim() ? { scale: 0.98 } : {}}
           onClick={handleSubmit}
           disabled={loading || !source.trim()}
-          className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className={styles.btnPrimary}
+          style={{
+            background: 'linear-gradient(135deg, #ff6b6b 0%, #ffa07a 50%, #a78bfa 100%)',
+            backgroundSize: '200% 200%',
+          }}
         >
           {loading ? (
             <>
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 1 }}
+                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
               >
                 <Sparkles size={24} />
               </motion.div>
@@ -325,32 +420,39 @@ export default function Home() {
           )}
         </motion.button>
 
-        {/* Progress Bar */}
+        {/* ═══════ 进度条 ═══════ */}
         {loading && (
-          <div className="mt-6 bg-white rounded-2xl shadow-xl p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 bg-white rounded-2xl border border-[#f0e6d8] shadow-sm p-6"
+          >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">{statusText}</span>
-              <span className="text-sm font-medium text-purple-600">{progress}%</span>
+              <span className="text-sm font-medium text-[#7a7a7a]">{statusText}</span>
+              <span className="text-sm font-semibold text-[#ff6b6b]">{progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-[#f5efe5] rounded-full h-3 overflow-hidden">
               <motion.div
-                className="h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                className="h-3 rounded-full"
+                style={{
+                  background: 'linear-gradient(90deg, #ff6b6b, #ffa07a, #a78bfa)',
+                }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
               />
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* Result */}
+        {/* ═══════ 结果显示 ═══════ */}
         {result && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 bg-white rounded-2xl shadow-xl p-6"
+            className="mt-8 bg-white rounded-2xl border border-[#f0e6d8] shadow-sm p-6"
           >
-            <h3 className="text-lg font-semibold mb-4">✨ 生成完成！</h3>
+            <h3 className="text-lg font-semibold text-[#2d2d2d] mb-4">✨ 生成完成！</h3>
             <video
               src={result}
               controls
@@ -361,7 +463,8 @@ export default function Home() {
               <a
                 href={result}
                 download
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #4ade80, #22c55e)' }}
               >
                 <Download size={18} />
                 下载视频
@@ -373,7 +476,8 @@ export default function Home() {
                   setProgress(0);
                   setStatusText('');
                 }}
-                className="flex items-center justify-center gap-2 py-3 px-6 bg-gray-100 text-gray-600 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                className="flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold
+                           bg-[#f5efe5] text-[#7a7a7a] hover:bg-[#efe5d5] hover:text-[#5a5a5a] transition-all"
               >
                 <RotateCcw size={18} />
                 再来一次
@@ -382,8 +486,8 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* Footer */}
-        <div className="mt-12 text-center text-sm text-gray-400">
+        {/* ═══════ Footer ═══════ */}
+        <div className="mt-12 text-center text-sm text-[#b8a898]">
           <p>🔥 蛋生动画 — AI 动漫视频生成器</p>
           <p className="mt-1">支持 iOS · Web · Windows | MIT License</p>
         </div>
@@ -392,6 +496,7 @@ export default function Home() {
   );
 }
 
+// ── placeholder 辅助函数（完全不变）──
 function getPlaceholder(type: SourceType, scene: SceneMode): string {
   if (scene === 'news') {
     if (type === 'web_link') return '粘贴新闻链接...\n例如：https://news.example.com/...';
