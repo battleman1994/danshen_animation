@@ -28,6 +28,7 @@ class VoiceSynthesizer:
         "zh-CN-XiaoyiNeural": {"gender": "Female", "style": "软萌少女"},
         "zh-CN-YunjianNeural": {"gender": "Male", "style": "阳光少年"},
         "zh-CN-XiaochenNeural": {"gender": "Female", "style": "温柔御姐"},
+        "zh-CN-XiaohanNeural": {"gender": "Female", "style": "甜美少女"},
     }
 
     def __init__(self):

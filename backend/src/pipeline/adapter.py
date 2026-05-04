@@ -86,6 +86,34 @@ class ScriptAdapter:
             "speech_style": "学术化表达，喜欢引经据典",
             "voice": "zh-CN-YunxiNeural",
         },
+        "shiba_inu": {
+            "name": "柴犬",
+            "emoji": "🐶",
+            "personality": "阳光开朗，忠诚热情，带点小幽默",
+            "speech_style": "语气明快，带感叹词'汪'，偶尔自黑",
+            "voice": "zh-CN-YunjianNeural",
+        },
+        "rabbit": {
+            "name": "兔子",
+            "emoji": "🐰",
+            "personality": "温柔细腻，善良敏感，偶尔害羞",
+            "speech_style": "轻声细语，用词文雅，带'呢''呀'语气词",
+            "voice": "zh-CN-XiaochenNeural",
+        },
+        "penguin": {
+            "name": "企鹅",
+            "emoji": "🐧",
+            "personality": "憨态可掬，偶尔出糗，但关键时刻很靠谱",
+            "speech_style": "有点结巴的萌感，喜欢说'呃...'，带数据控倾向",
+            "voice": "zh-CN-XiaoyiNeural",
+        },
+        "lion": {
+            "name": "雄狮",
+            "emoji": "🦁",
+            "personality": "威严庄重，王者风范，公正不阿",
+            "speech_style": "字正腔圆，语气坚定，播报级发音",
+            "voice": "zh-CN-YunyangNeural",
+        },
     }
 
     def __init__(self):
@@ -120,7 +148,63 @@ class ScriptAdapter:
         )
 
         script_text = resp.choices[0].message.content
-        return self._parse_script(script_text, char_info, character_count)
+        mood = "bright" if style == "funny" else "calm"
+        return self._parse_script(script_text, char_info, character_count, background_mood=mood)
+
+    async def adapt_news(
+        self,
+        content: ExtractedContent,
+        character: str = "shiba_inu",
+        broadcast_style: str = "轻松调侃",
+    ) -> AdaptedScript:
+        """将新闻改编为动物主播播报脚本"""
+        char_info = self.CHARACTER_TEMPLATES.get(character, self.CHARACTER_TEMPLATES["shiba_inu"])
+
+        # 新闻播报风格 prompt
+        news_prompt = f"""你是一个动物新闻主播的脚本编剧。请将以下新闻改编成{char_info['name']}{char_info['emoji']}主播的播报脚本。
+
+【角色设定】
+- 主播：{char_info['name']} {char_info['emoji']}
+- 性格：{char_info['personality']}
+- 说话风格：{char_info['speech_style']}
+- 播报风格：{broadcast_style}
+
+【原始新闻】
+{content.text[:2000]}
+
+【改编要求】
+1. 开场打招呼，介绍自己是{char_info['name']}主播
+2. 用{char_info['name']}的语气播报新闻
+3. 保持新闻事实准确
+4. 适合 30-90 秒短视频
+5. 以动物卖萌的方式增强趣味性
+6. 结尾有标志性告别语
+
+请用以下格式输出：
+---
+标题：xxx
+{char_info['name']}（情绪）：台词
+...
+---
+
+注意只保留一位主播（{char_info['name']}），不要多个角色。"""
+
+        resp = await self.llm.chat.completions.create(
+            model=settings.llm_model,
+            messages=[{
+                "role": "system",
+                "content": "你是一个专业的新闻动画脚本编剧。将新闻改编成动物主播播报脚本。"
+            }, {
+                "role": "user",
+                "content": news_prompt
+            }],
+            temperature=0.7,
+            max_tokens=2000,
+        )
+
+        script_text = resp.choices[0].message.content
+        # 新闻播报用偏正式背景
+        return self._parse_script(script_text, char_info, 1, background_mood="news")  # 单个主播
 
     def _build_prompt(
         self, content: ExtractedContent, char_info: dict, char_count: int, style: str
@@ -164,7 +248,8 @@ class ScriptAdapter:
 """
 
     def _parse_script(
-        self, script_text: str, char_info: dict, char_count: int
+        self, script_text: str, char_info: dict, char_count: int,
+        background_mood: str = "bright",
     ) -> AdaptedScript:
         """解析 LLM 输出的脚本"""
         lines = []
@@ -213,5 +298,5 @@ class ScriptAdapter:
             title=title,
             characters=characters,
             lines=lines,
-            background_mood="bright" if style == "funny" else "calm",
+            background_mood=background_mood,
         )

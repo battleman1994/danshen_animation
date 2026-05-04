@@ -48,6 +48,27 @@ class CharacterGenerator:
             "chibi anime style, wearing an academic robe, holding a pointer, "
             "sitting at a podium, warm lighting"
         ),
+        "shiba_inu": (
+            "A cheerful shiba inu dog with a happy smile, cream and tan fur, "
+            "chibi anime style, wearing a cute bow tie, energetic pose, "
+            "bright sunny background, high quality kawaii rendering"
+        ),
+        "rabbit": (
+            "A gentle white rabbit with long floppy ears, pink nose, "
+            "chibi anime style, wearing a soft pastel dress, delicate pose, "
+            "flower garden background, dreamy soft lighting"
+        ),
+        "penguin": (
+            "A cute emperor penguin chick with fluffy gray feathers, round body, "
+            "chibi anime style, wearing tiny glasses, standing at an ice podium, "
+            "holding a pointer stick, icy blue background"
+        ),
+        "lion": (
+            "A majestic lion with a golden mane, regal expression, "
+            "chibi anime style, wearing a formal anchor suit with a tiny tie, "
+            "sitting at a grand news desk, dramatic lighting, "
+            "high quality rendering, professional broadcast style"
+        ),
     }
 
     # 情绪对应的表情 prompt
