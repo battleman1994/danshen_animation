@@ -1,0 +1,47 @@
+/* ===== 设计令牌 (Lovable 温暖奶油色 × Figma 渐变活力) ===== */
+:root {
+  --bg-cream: #fef9f0;
+  --bg-white: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #2d2d2d;
+  --text-secondary: #5f5f5d;
+  --text-muted: #8a8a86;
+  --text-disabled: #b0aca4;
+  --gradient-coral: #ff6b6b;
+  --gradient-peach: #ffa07a;
+  --gradient-lavender: #a78bfa;
+  --gradient-primary: linear-gradient(135deg, #ff6b6b 0%, #ffa07a 50%, #a78bfa 100%);
+  --gradient-button: linear-gradient(135deg, #ff6b6b, #ffa07a);
+  --gradient-progress: linear-gradient(90deg, #ff6b6b, #ffa07a, #a78bfa);
+  --border-light: #f0e6d8;
+  --shadow-button: 0 4px 20px rgba(255, 107, 107, 0.3), 0 2px 8px rgba(167, 139, 250, 0.2);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-pill: 50px;
+  --transition-base: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  color: var(--text-primary);
+  background: var(--bg-cream);
+  font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+#main { min-height: 100vh; }
+.glass-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); border-radius: var(--radius-lg); }
+.card-warm { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-lg); }
+.text-gradient { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.btn-gradient { background: var(--gradient-button); border-radius: var(--radius-xl); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; color: white; padding: 0.75rem 2rem; transition: all var(--transition-base); }
+.btn-gradient:active { transform: scale(0.97); }
+.btn-gradient:disabled { opacity: 0.6; cursor: not-allowed; }
+@keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+.progress-gradient { background: var(--gradient-progress); background-size: 200% 100%; animation: shimmer 2s linear infinite; border-radius: 9999px; height: 100%; transition: width 0.3s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-up { animation: fadeUp 0.4s ease-out forwards; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.animate-float { animation: float 6s ease-in-out infinite; }
