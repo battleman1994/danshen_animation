@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { SceneMode } from './types';
+import { CHARACTERS } from './constants';
 
 interface Props {
   character: string;
@@ -10,18 +11,6 @@ interface Props {
   onCharacterChange: (id: string) => void;
   onCountChange: (n: number) => void;
 }
-
-const CHARACTERS = [
-  { id: 'tabby_cat', name: '狸花猫', emoji: '🐱', style: '活泼灵巧' },
-  { id: 'brown_bear', name: '棕熊', emoji: '🐻', style: '稳重憨厚' },
-  { id: 'little_fox', name: '小狐狸', emoji: '🦊', style: '机灵俏皮' },
-  { id: 'panda', name: '熊猫', emoji: '🐼', style: '呆萌可爱' },
-  { id: 'rabbit', name: '兔子', emoji: '🐰', style: '温柔敏捷' },
-  { id: 'shiba_inu', name: '柴犬', emoji: '🐶', style: '忠诚阳光' },
-  { id: 'owl', name: '猫头鹰', emoji: '🦉', style: '智慧专业' },
-  { id: 'penguin', name: '企鹅', emoji: '🐧', style: '憨态可掬' },
-  { id: 'lion', name: '雄狮', emoji: '🦁', style: '庄重威严' },
-];
 
 export default function CharacterGrid({ character, characterCount, sceneMode, onCharacterChange, onCountChange }: Props) {
   return (

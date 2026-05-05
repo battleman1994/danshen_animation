@@ -13,13 +13,13 @@ export interface Character {
 export interface Scene {
   id: SceneMode;
   name: string;
-  icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
+  icon: React.ComponentType<{ size?: number | string; className?: string; style?: React.CSSProperties }>;
   desc: string;
 }
 
 export interface InputTab {
   type: SourceType;
-  icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
+  icon: React.ComponentType<{ size?: number | string; className?: string; style?: React.CSSProperties }>;
   label: string;
 }
 
