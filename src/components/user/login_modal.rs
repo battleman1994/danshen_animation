@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
 use crate::api::client;
-use crate::components::types::*;
 use crate::components::user::user_state::use_user;
 use crate::styles::theme::use_theme;
 
@@ -22,11 +21,11 @@ pub fn LoginModal() -> Element {
     // SMS 登录状态
     let mut phone = use_signal(String::new);
     let mut sms_code = use_signal(String::new);
-    let mut countdown = use_signal(|| 0u32);
+    let countdown = use_signal(|| 0u32);
 
     // 加载状态
-    let mut loading = use_signal(|| false);
-    let mut error_msg = use_signal(String::new);
+    let loading = use_signal(|| false);
+    let error_msg = use_signal(String::new);
 
     // 模拟回调 — 直接调用 OAuth callback API
     let do_oauth_login = move |provider: &str| {
@@ -60,7 +59,6 @@ pub fn LoginModal() -> Element {
         let mut l = loading.clone();
         let mut err = error_msg.clone();
         let mut u_ctx = user_ctx.clone();
-        let mut count = countdown.clone();
         spawn(async move {
             l.set(true);
             err.set(String::new());
@@ -102,7 +100,7 @@ pub fn LoginModal() -> Element {
 
     // 倒计时效果
     {
-        let mut count = countdown.clone();
+        let count = countdown.clone();
         use_effect(move || {
             let c = count();
             if c > 0 {
@@ -152,7 +150,7 @@ pub fn LoginModal() -> Element {
          font-size: 15px; outline: none; transition: border 0.2s;",
         c.border, c.bg_input, c.text_primary
     );
-    let provider_btn = |name: &str, icon: &str, color: &str| {
+    let provider_btn = |_name: &str, _icon: &str, color: &str| {
         format!(
             "flex: 1; padding: 16px 8px; border: none; border-radius: 12px;\
              cursor: pointer; font-size: 14px; font-weight: 500;\

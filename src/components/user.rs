@@ -10,6 +10,7 @@ pub enum LoginMethod {
     Phone,
 }
 
+#[allow(dead_code)]
 impl LoginMethod {
     pub fn label(&self) -> &'static str {
         match self {
@@ -42,7 +43,7 @@ pub mod user_state;
 pub mod login_modal;
 
 // ── 重新导出方便外部引用 ──
-pub use user_state::{UseUser, use_user_provider, use_user};
+pub use user_state::{use_user_provider, use_user};
 pub use login_modal::LoginModal;
 
 /// 默认头像占位（根据登录方式显示图标）
@@ -61,7 +62,7 @@ fn default_avatar_emoji(method: Option<LoginMethod>) -> &'static str {
 /// ============================================================
 #[component]
 pub fn UserDisplay() -> Element {
-    let mut user_ctx = use_user();
+    let user_ctx = use_user();
     let c = use_theme().colors();
     let logged_in = user_ctx.is_logged_in();
 
