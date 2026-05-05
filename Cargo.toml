@@ -1,0 +1,30 @@
+[package]
+name = "danshen-animation"
+version = "0.1.0"
+edition = "2021"
+description = "🔥 单身动画 — AI 驱动的动漫风格视频生成器（Dioxus 跨平台版）"
+
+[features]
+default = ["desktop"]
+desktop = ["dioxus/desktop"]
+web = ["dioxus/web"]
+
+[dependencies]
+dioxus = { version = "0.5", default-features = false, features = [
+    "html", "macro", "hooks", "signals", "launch"
+] }
+dioxus-logger = "0.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json"] }
+wasm-bindgen-futures = "0.4"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1", features = ["time"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

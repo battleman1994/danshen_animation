@@ -20,6 +20,7 @@ out/
 
 # OS
 .DS_Store
+<<<<<<< Updated upstream
 Thumbs.db
 
 # Env
@@ -40,3 +41,9 @@ docker-compose.override.yml
 
 # Electron
 windows/electron/dist/
+=======
+node_modules/
+.next/
+web/node_modules/
+web/.next/
+>>>>>>> Stashed changes
