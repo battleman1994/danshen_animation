@@ -51,21 +51,10 @@ pub struct AuthResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OAuthUrlResponse {
-    pub url: String,
-    pub provider: String,
-    pub message: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendSmsResponse {
     pub success: bool,
     pub message: String,
     pub debug_code: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleResponse {
-    pub success: bool,
-    pub message: String,
-}
+

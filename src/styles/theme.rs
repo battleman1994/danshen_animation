@@ -8,9 +8,6 @@ pub enum Theme {
 }
 
 impl Theme {
-    pub fn data_theme(&self) -> &'static str {
-        match self { Self::LinearDark => "linear-dark", Self::ClaudeWarm => "claude-warm" }
-    }
     pub fn label(&self) -> &'static str {
         match self { Self::LinearDark => "暗色极简", Self::ClaudeWarm => "暖色编辑" }
     }
@@ -23,6 +20,7 @@ impl Theme {
 }
 
 /// 主题所有颜色值 — 组件直接引用这些字段
+#[allow(dead_code)]
 pub struct ThemeColors {
     /* Background */
     pub bg_page: &'static str,

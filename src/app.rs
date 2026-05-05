@@ -36,6 +36,7 @@ pub fn App() -> Element {
     let progress = anim.progress() as f64;
     let status_text = anim.status_text();
     let result = anim.result();
+    let error_msg = anim.error();
     let can_submit = anim.can_submit();
 
     rsx! {
@@ -57,6 +58,17 @@ pub fn App() -> Element {
                 if scene_mode == SceneMode::News { NewsModeHint {} }
                 if scene_mode == SceneMode::Dialogue { StyleSelector { style: style.clone(), on_change: move |s| anim.style.set(s) } }
                 SubmitButton { loading, can_submit, on_submit: move |_| anim.handle_submit() }
+                if let Some(ref msg) = error_msg {
+                    div { class: "mb-6 p-4 animate-fade-up", style: "background: rgba(239,68,68,0.10); border: 1px solid rgba(239,68,68,0.30); border-radius: {c.radius_lg}; color: #fca5a5; font-size: 14px; line-height: 1.6;",
+                        div { class: "flex items-start gap-3",
+                            span { class: "text-lg flex-shrink-0", "⚠️" }
+                            div {
+                                p { class: "font-semibold mb-1", style: "color: #fca5a5;", "生成请求失败" }
+                                p { style: "color: rgba(252,165,165,0.80); word-break: break-word;", "{msg}" }
+                            }
+                        }
+                    }
+                }
                 if loading { ProgressBar { progress, status_text } }
                 ResultCard { video_url: result, on_reset: move |_| anim.handle_reset() }
                 Footer {}

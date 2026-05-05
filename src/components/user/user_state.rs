@@ -32,12 +32,6 @@ impl UseUser {
         self.user.set(None);
     }
 
-    /// 打开/关闭登录弹窗
-    pub fn toggle_login(&mut self) {
-        let current = *self.show_login.read();
-        self.show_login.set(!current);
-    }
-
     /// 显示登录弹窗
     pub fn open_login(&mut self) {
         self.show_login.set(true);

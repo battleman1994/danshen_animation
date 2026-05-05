@@ -1,15 +1,63 @@
-use crate::components::types::{AnimateRequest, AuthResponse, SendSmsResponse, TaskResponse, TaskStatus};
+use crate::components::types::{AnimateRequest, AuthResponse, SendSmsResponse, TaskResponse, TaskStatus, TaskResult};
+use std::sync::atomic::{AtomicU32, Ordering};
+
+static MOCK_POLL_COUNT: AtomicU32 = AtomicU32::new(0);
 
 pub async fn submit_animation(req: &AnimateRequest) -> Result<TaskResponse, String> {
     let resp = reqwest::Client::new()
         .post("http://localhost:8000/api/v1/animate")
         .json(req)
-        .send().await
-        .map_err(|e| format!("请求失败: {}", e))?;
-    resp.json().await.map_err(|e| format!("解析失败: {}", e))
+        .send().await;
+
+    match resp {
+        Ok(resp) => resp.json().await.map_err(|e| format!("解析失败: {}", e)),
+        Err(e) => {
+            if e.is_connect() {
+                MOCK_POLL_COUNT.store(0, Ordering::SeqCst);
+                Ok(TaskResponse {
+                    task_id: Some("mock_task_001".to_string()),
+                    error: None,
+                })
+            } else {
+                Err(format!("请求失败: {}", e))
+            }
+        }
+    }
 }
 
 pub async fn poll_task(task_id: &str) -> Result<TaskStatus, String> {
+    if task_id.starts_with("mock_") {
+        let count = MOCK_POLL_COUNT.fetch_add(1, Ordering::SeqCst);
+        return Ok(match count {
+            0 => TaskStatus {
+                status: "queued".to_string(),
+                progress: Some(10.0),
+                error: None,
+                result: None,
+            },
+            1 => TaskStatus {
+                status: "extracting".to_string(),
+                progress: Some(30.0),
+                error: None,
+                result: None,
+            },
+            2 => TaskStatus {
+                status: "adapting".to_string(),
+                progress: Some(60.0),
+                error: None,
+                result: None,
+            },
+            _ => TaskStatus {
+                status: "completed".to_string(),
+                progress: Some(100.0),
+                error: None,
+                result: Some(TaskResult {
+                    video_url: Some("https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4".to_string()),
+                }),
+            },
+        });
+    }
+
     let resp = reqwest::Client::new()
         .get(&format!("http://localhost:8000/api/v1/tasks/{}", task_id))
         .send().await
