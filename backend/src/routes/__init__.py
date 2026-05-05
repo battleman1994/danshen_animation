@@ -1,3 +1,3 @@
-from . import animate, tasks
+from . import animate, tasks, auth
 
-__all__ = ["animate", "tasks"]
+__all__ = ["animate", "tasks", "auth"]

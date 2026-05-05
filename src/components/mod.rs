@@ -11,3 +11,4 @@ pub mod progress_bar;
 pub mod result_card;
 pub mod decorative_blobs;
 pub mod footer;
+pub mod user;

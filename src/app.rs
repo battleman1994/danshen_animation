@@ -11,6 +11,7 @@ use crate::components::submit_button::SubmitButton;
 use crate::components::progress_bar::ProgressBar;
 use crate::components::result_card::ResultCard;
 use crate::components::types::SceneMode;
+use crate::components::user::use_user_provider;
 use crate::hooks::use_animation::use_animation;
 use crate::styles::theme::use_theme_provider;
 use crate::styles::STYLE_CSS;
@@ -20,6 +21,9 @@ pub fn App() -> Element {
     // 注入全局 CSS（直接内嵌在组件树中，桌面/Web 都生效）
     let theme_ctx = use_theme_provider();
     let c = theme_ctx.colors();
+
+    // 初始化认证状态
+    let _auth = use_user_provider();
 
     let mut anim = use_animation();
     let scene_mode = anim.scene_mode();

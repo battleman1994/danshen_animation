@@ -29,3 +29,43 @@ pub struct TaskResponse { pub task_id: Option<String>, pub error: Option<String>
 pub struct TaskStatus { pub status: String, pub progress: Option<f64>, pub error: Option<String>, pub result: Option<TaskResult> }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskResult { pub video_url: Option<String> }
+
+// ── User / Auth Types ──
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct UserInfo {
+    pub user_id: String,
+    pub nickname: String,
+    pub avatar_url: String,
+    pub provider: String,
+    pub phone: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthResponse {
+    pub success: bool,
+    pub token: String,
+    pub user: Option<UserInfo>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuthUrlResponse {
+    pub url: String,
+    pub provider: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SendSmsResponse {
+    pub success: bool,
+    pub message: String,
+    pub debug_code: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimpleResponse {
+    pub success: bool,
+    pub message: String,
+}

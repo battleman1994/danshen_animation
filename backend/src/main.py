@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
-from .routes import tasks, animate
+from .routes import tasks, animate, auth
 
 
 @asynccontextmanager
@@ -55,6 +55,7 @@ app.mount("/output", StaticFiles(directory=str(settings.output_dir)), name="outp
 # 注册路由
 app.include_router(animate.router, prefix=settings.api_prefix)
 app.include_router(tasks.router, prefix=settings.api_prefix)
+app.include_router(auth.router, prefix=settings.api_prefix)
 
 
 @app.get("/")
