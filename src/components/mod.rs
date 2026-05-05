@@ -2,6 +2,7 @@ pub mod types;
 pub mod constants;
 pub mod logo;
 pub mod header;
+pub mod logo;
 pub mod scene_selector;
 pub mod source_input;
 pub mod character_grid;
