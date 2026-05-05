@@ -10,11 +10,17 @@ use crate::components::news_mode_hint::NewsModeHint;
 use crate::components::submit_button::SubmitButton;
 use crate::components::progress_bar::ProgressBar;
 use crate::components::result_card::ResultCard;
-use crate::components::types::{SceneMode, SourceType};
+use crate::components::types::SceneMode;
 use crate::hooks::use_animation::use_animation;
+use crate::styles::theme::use_theme_provider;
+use crate::styles::STYLE_CSS;
 
 #[component]
 pub fn App() -> Element {
+    // 注入全局 CSS（直接内嵌在组件树中，桌面/Web 都生效）
+    let theme_ctx = use_theme_provider();
+    let c = theme_ctx.colors();
+
     let mut anim = use_animation();
     let scene_mode = anim.scene_mode();
     let source = anim.source();
@@ -29,7 +35,11 @@ pub fn App() -> Element {
     let can_submit = anim.can_submit();
 
     rsx! {
-        main { class: "min-h-screen", style: "background: #fef9f0; position: relative;",
+        // 内嵌 CSS 确保在桌面 webview 中也生效
+        style { "{STYLE_CSS}" }
+        main {
+            class: "min-h-screen",
+            style: "background: {c.bg_page}; position: relative;",
             DecorativeBlobs {}
             div { class: "relative max-w-2xl mx-auto px-5 py-12 md:py-16",
                 Header {}
