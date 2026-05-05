@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 use crate::styles::theme::use_theme;
 use crate::components::logo::Logo;
 use crate::components::user::AuthBar;
-use crate::components::logo::Logo;
 
 #[component]
 pub fn Header() -> Element {
