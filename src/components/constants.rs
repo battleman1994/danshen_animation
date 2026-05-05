@@ -14,8 +14,8 @@ pub fn get_characters() -> Vec<Character> { vec![
 pub fn get_scene_modes() -> Vec<SceneMode> { vec![SceneMode::Auto, SceneMode::Dialogue, SceneMode::News] }
 pub fn get_source_types() -> Vec<SourceType> { vec![SourceType::Text, SourceType::WebLink, SourceType::Image, SourceType::DouyinVideo] }
 pub fn get_styles() -> Vec<Style> { vec![Style { id: "auto", label: "🤖 自动" }, Style { id: "funny", label: "😂 搞笑" }, Style { id: "serious", label: "🎯 严肃" }, Style { id: "cute", label: "💕 可爱" }] }
-pub fn get_default_character() -> &'static str { "tabby_cat" }
 pub fn get_status_label(status: &str) -> &'static str { match status { "queued" => "⏳ 排队中...", "extracting" => "📥 正在提取内容...", "adapting" => "✍️ 正在改编脚本...", "generating_characters" => "🎨 正在生成角色...", "synthesizing_voice" => "🔊 正在合成语音...", "composing_video" => "🎬 正在合成视频...", "completed" => "✨ 生成完成！", "failed" => "❌ 生成失败", _ => "⏳ 处理中..." } }
+
 pub fn get_placeholder(source_type: SourceType, scene_mode: SceneMode) -> &'static str { match (scene_mode, source_type) {
     (SceneMode::News, SourceType::WebLink) => "粘贴新闻链接...例如：https://news.example.com/...",
     (SceneMode::News, SourceType::Text) => "输入或粘贴新闻内容...例如：今日股市大涨3%...",
