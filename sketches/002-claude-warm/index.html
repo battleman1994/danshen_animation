@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蛋生动画 — Claude 暖色风格</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: #f5f4ed;
+      color: #141413;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Layout */
+    .app-container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+
+    /* Section spacing */
+    .section {
+      margin-bottom: 36px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #87867f;
+      margin-bottom: 14px;
+      padding-left: 2px;
+    }
+
+    /* Card surface */
+    .card {
+      background: #faf9f5;
+      border: 1px solid #f0eee6;
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s ease;
+    }
+    .card:focus-within {
+      border-color: #c96442;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 52px;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: #e8e6dc;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #5e5d59;
+      margin-bottom: 28px;
+      letter-spacing: 0.02em;
+    }
+    .header h1 {
+      font-family: 'Noto Serif SC', Georgia, serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: #141413;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+    }
+    .header p {
+      font-size: 16px;
+      font-weight: 400;
+      color: #5e5d59;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    /* Scene Selector */
+    .scene-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .scene-card {
+      background: #faf9f5;
+      border: 1px solid #f0eee6;
+      border-radius: 12px;
+      padding: 18px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .scene-card:hover {
+      border-color: #d1cfc5;
+      background: #ffffff;
+    }
+    .scene-card.active {
+      background: #ffffff;
+      border-color: #c96442;
+      box-shadow: 0 0 0 1px #c96442;
+    }
+    .scene-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .scene-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #141413;
+      margin-bottom: 4px;
+    }
+    .scene-desc {
+      font-size: 12px;
+      color: #87867f;
+      line-height: 1.4;
+    }
+
+    /* Source Type Pills */
+    .source-types {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .source-pill {
+      padding: 7px 16px;
+      background: #e8e6dc;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #4d4c48;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid transparent;
+    }
+    .source-pill:hover {
+      background: #d1cfc5;
+    }
+    .source-pill.active {
+      background: #c96442;
+      color: #faf9f5;
+      border-color: #c96442;
+    }
+
+    /* Textarea */
+    .input-card textarea {
+      width: 100%;
+      height: 140px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      color: #141413;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.7;
+      resize: none;
+      outline: none;
+    }
+    .input-card textarea::placeholder {
+      color: #87867f;
+    }
+
+    /* Character Grid */
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .char-card {
+      background: #faf9f5;
+      border: 1px solid #f0eee6;
+      border-radius: 12px;
+      padding: 16px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .char-card:hover {
+      border-color: #d1cfc5;
+      background: #ffffff;
+    }
+    .char-card.active {
+      background: #ffffff;
+      border-color: #c96442;
+      box-shadow: 0 0 0 1px #c96442;
+    }
+    .char-emoji {
+      font-size: 32px;
+      margin-bottom: 6px;
+    }
+    .char-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #5e5d59;
+    }
+    .char-card.active .char-name {
+      color: #141413;
+    }
+
+    /* Count selector */
+    .count-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .count-label {
+      font-size: 13px;
+      color: #87867f;
+    }
+    .count-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #e8e6dc;
+      border: none;
+      color: #4d4c48;
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+    .count-btn:hover {
+      background: #d1cfc5;
+    }
+    .count-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #141413;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    /* Style Selector */
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .style-card {
+      background: #faf9f5;
+      border: 1px solid #f0eee6;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .style-card:hover {
+      border-color: #d1cfc5;
+    }
+    .style-card.active {
+      background: #ffffff;
+      border-color: #c96442;
+      box-shadow: 0 0 0 1px #c96442;
+    }
+    .style-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #5e5d59;
+    }
+    .style-card.active .style-name {
+      color: #141413;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%;
+      padding: 14px 24px;
+      background: #c96442;
+      color: #faf9f5;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+    }
+    .submit-btn:hover {
+      background: #d97757;
+    }
+    .submit-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .submit-btn.loading {
+      background: #e8e6dc;
+      color: #87867f;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin-top: 20px;
+    }
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: #e8e6dc;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #c96442;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    .progress-status {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #87867f;
+    }
+
+    /* Result Card */
+    .result-card {
+      margin-top: 20px;
+      background: #faf9f5;
+      border: 1px solid #e8e6dc;
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .result-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #141413;
+    }
+    .result-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .result-btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .result-btn.play {
+      background: #c96442;
+      color: #faf9f5;
+      border: none;
+    }
+    .result-btn.play:hover {
+      background: #d97757;
+    }
+    .result-btn.reset {
+      background: #e8e6dc;
+      color: #4d4c48;
+      border: none;
+    }
+    .result-btn.reset:hover {
+      background: #d1cfc5;
+    }
+    .result-video {
+      width: 100%;
+      border-radius: 10px;
+      background: #141413;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 52px;
+      padding-top: 28px;
+      border-top: 1px solid #e8e6dc;
+    }
+    .footer p {
+      font-size: 13px;
+      color: #87867f;
+    }
+
+    /* Hint */
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #faf9f5;
+      border: 1px solid #e8e6dc;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #5e5d59;
+    }
+
+    /* Interactive demo states */
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">
+        <span>✦</span> AI 动漫视频生成器
+      </div>
+      <h1>蛋生动画</h1>
+      <p>输入热点话题，AI 为你生成可爱动物主演的动漫视频</p>
+    </div>
+
+    <!-- Scene Selector -->
+    <div class="section">
+      <div class="section-label">选择场景</div>
+      <div class="scene-grid">
+        <div class="scene-card active" onclick="selectScene(this, 'auto')">
+          <div class="scene-icon">⚡</div>
+          <div class="scene-name">智能识别</div>
+          <div class="scene-desc">AI 自动选择最佳模式</div>
+        </div>
+        <div class="scene-card" onclick="selectScene(this, 'dialogue')">
+          <div class="scene-icon">💬</div>
+          <div class="scene-name">对话剧场</div>
+          <div class="scene-desc">抖音对话 → 动物演绎</div>
+        </div>
+        <div class="scene-card" onclick="selectScene(this, 'news')">
+          <div class="scene-icon">📰</div>
+          <div class="scene-name">新闻播报</div>
+          <div class="scene-desc">热点新闻 → 动物主播</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Source Input -->
+    <div class="section">
+      <div class="section-label">输入源</div>
+      <div class="source-types">
+        <div class="source-pill active" onclick="selectSource(this, 'text')"><span>Aa</span> 文字</div>
+        <div class="source-pill" onclick="selectSource(this, 'link')"><span>🔗</span> 链接</div>
+        <div class="source-pill" onclick="selectSource(this, 'image')"><span>📷</span> 图片</div>
+        <div class="source-pill" onclick="selectSource(this, 'douyin')"><span>▶</span> 抖音</div>
+      </div>
+      <div class="card input-card">
+        <textarea placeholder="输入话题文字描述，例如：一只小猫在咖啡店里打工的故事…"></textarea>
+      </div>
+    </div>
+
+    <!-- Character Grid -->
+    <div class="section" id="character-section">
+      <div class="section-label">选择角色</div>
+      <div class="char-grid">
+        <div class="char-card active" onclick="selectChar(this)">
+          <div class="char-emoji">🐱</div>
+          <div class="char-name">小橘猫</div>
+        </div>
+        <div class="char-card" onclick="selectChar(this)">
+          <div class="char-emoji">🐶</div>
+          <div class="char-name">小柴犬</div>
+        </div>
+        <div class="char-card" onclick="selectChar(this)">
+          <div class="char-emoji">🐰</div>
+          <div class="char-name">小白兔</div>
+        </div>
+        <div class="char-card" onclick="selectChar(this)">
+          <div class="char-emoji">🐼</div>
+          <div class="char-name">小熊猫</div>
+        </div>
+      </div>
+      <div class="count-bar">
+        <span class="count-label">角色数量</span>
+        <button class="count-btn" onclick="adjustCount(-1)">−</button>
+        <span class="count-value" id="count-value">2</span>
+        <button class="count-btn" onclick="adjustCount(1)">+</button>
+      </div>
+    </div>
+
+    <!-- Style Selector -->
+    <div class="section hidden" id="style-section">
+      <div class="section-label">视觉风格</div>
+      <div class="style-grid">
+        <div class="style-card active" onclick="selectStyle(this)">
+          <div class="style-name">🎨 吉卜力</div>
+        </div>
+        <div class="style-card" onclick="selectStyle(this)">
+          <div class="style-name">✏️ 手绘风</div>
+        </div>
+        <div class="style-card" onclick="selectStyle(this)">
+          <div class="style-name">🌙 新海诚</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hint -->
+    <div class="section hidden" id="hint-section">
+      <div class="hint">
+        <span>📌</span>
+        <span>新闻模式将自动抓取热点新闻内容，无需额外输入文本</span>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button class="submit-btn" id="submit-btn" onclick="startGeneration()">
+      <span>✨</span>
+      <span>生成动画</span>
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-container hidden" id="progress-container">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="progress-status">
+        <span id="status-text">正在生成动画…</span>
+        <span id="progress-percent">0%</span>
+      </div>
+    </div>
+
+    <!-- Result Card -->
+    <div class="result-card hidden" id="result-card">
+      <div class="result-header">
+        <span class="result-title">✅ 生成完成</span>
+        <div class="result-actions">
+          <button class="result-btn play">▶ 播放</button>
+          <button class="result-btn reset" onclick="resetAll()">✕ 重新生成</button>
+        </div>
+      </div>
+      <div class="result-video" style="height: 340px; background: #141413; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #87867f; font-size: 14px;">
+        🎬 视频预览区域
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>蛋生动画 — 由 AI 驱动的动漫风格视频生成器</p>
+    </div>
+  </div>
+
+  <script>
+    let count = 2;
+    function selectScene(el, mode) {
+      document.querySelectorAll('.scene-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+
+      const charSection = document.getElementById('character-section');
+      const styleSection = document.getElementById('style-section');
+      const hintSection = document.getElementById('hint-section');
+
+      charSection.classList.remove('hidden');
+      styleSection.classList.add('hidden');
+      hintSection.classList.add('hidden');
+
+      if (mode === 'news') {
+        charSection.classList.add('hidden');
+        hintSection.classList.remove('hidden');
+      } else if (mode === 'dialogue') {
+        styleSection.classList.remove('hidden');
+      }
+    }
+
+    function selectSource(el) {
+      document.querySelectorAll('.source-pill').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function selectChar(el) {
+      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function selectStyle(el) {
+      document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function adjustCount(delta) {
+      count = Math.max(1, Math.min(10, count + delta));
+      document.getElementById('count-value').textContent = count;
+    }
+
+    function startGeneration() {
+      const btn = document.getElementById('submit-btn');
+      const progress = document.getElementById('progress-container');
+      const fill = document.getElementById('progress-fill');
+      const statusText = document.getElementById('status-text');
+      const percentText = document.getElementById('progress-percent');
+
+      btn.classList.add('loading');
+      btn.innerHTML = '<span>⏳</span><span>正在生成…</span>';
+      btn.disabled = true;
+      progress.classList.remove('hidden');
+
+      let pct = 0;
+      const interval = setInterval(() => {
+        pct += Math.random() * 8 + 2;
+        if (pct > 95) pct = 95;
+        fill.style.width = pct + '%';
+        percentText.textContent = Math.round(pct) + '%';
+
+        if (pct < 30) statusText.textContent = '正在理解内容…';
+        else if (pct < 60) statusText.textContent = '正在生成动画帧…';
+        else if (pct < 85) statusText.textContent = '正在合成视频…';
+        else statusText.textContent = '即将完成…';
+      }, 600);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        fill.style.width = '100%';
+        percentText.textContent = '100%';
+        statusText.textContent = '已完成！';
+        btn.classList.add('hidden');
+        progress.classList.add('hidden');
+        document.getElementById('result-card').classList.remove('hidden');
+      }, 5000);
+    }
+
+    function resetAll() {
+      document.getElementById('result-card').classList.add('hidden');
+      const btn = document.getElementById('submit-btn');
+      btn.classList.remove('loading');
+      btn.classList.remove('hidden');
+      btn.innerHTML = '<span>✨</span><span>生成动画</span>';
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>
