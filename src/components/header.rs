@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use crate::styles::theme::use_theme;
 use crate::components::user::AuthBar;
+use crate::components::logo::Logo;
 
 #[component]
 pub fn Header() -> Element {
@@ -24,11 +25,7 @@ pub fn Header() -> Element {
             div { class: "flex items-center justify-between mb-5",
                 // Logo 区域
                 div { class: "flex items-center gap-2",
-                    div {
-                        class: "w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold",
-                        style: "background: linear-gradient(135deg, {c.accent} 0%, {c.accent_hover} 100%); color: #fff;",
-                        "蛋"
-                    }
+                    Logo {}
                     span { class: "font-bold text-lg hidden sm:inline", style: "color: {c.text_primary};",
                         "蛋神动画"
                     }
