@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/🔥-danshen_animation-5e6ad2?style=for-the-badge" alt="danshen_animation">
 </p>
 
-<h1 align="center">🔥 单身动画 — Danshen Animation</h1>
+<h1 align="center">🔥 蛋神动画 — Danshen Animation</h1>
 <p align="center"><strong>AI 驱动的动漫风格视频生成器</strong></p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 
 ## 🎬 这是什么？
 
-**单身动画** 是一个 AI 驱动的视频生成工具。你给它热点内容（图片、文字、链接、视频），它帮你生成**动漫风格**的配音视频——角色是可爱的动物们 🐱🐻🦊！
+**蛋神动画** 是一个 AI 驱动的视频生成工具。你给它热点内容（图片、文字、链接、视频），它帮你生成**动漫风格**的配音视频——角色是可爱的动物们 🐱🐻🦊！
 
 ### 🎨 UI 设计预览
 

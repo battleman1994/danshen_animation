@@ -20,8 +20,10 @@ out/
 
 # OS
 .DS_Store
-<<<<<<< Updated upstream
 Thumbs.db
+
+# Rust (Cargo build artifacts)
+target/
 
 # Env
 .env
@@ -39,11 +41,5 @@ data/
 # Docker
 docker-compose.override.yml
 
-# Electron
-windows/electron/dist/
-=======
-node_modules/
-.next/
-web/node_modules/
-web/.next/
->>>>>>> Stashed changes
+# Local project config
+.hermes/

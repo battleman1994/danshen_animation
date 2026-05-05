@@ -30,7 +30,7 @@ pub fn Header() -> Element {
                         "蛋"
                     }
                     span { class: "font-bold text-lg hidden sm:inline", style: "color: {c.text_primary};",
-                        "蛋生动画"
+                        "蛋神动画"
                     }
                 }
 
@@ -55,7 +55,7 @@ pub fn Header() -> Element {
             h1 {
                 class: "text-5xl md:text-6xl font-bold mb-4",
                 style: "{title_s}",
-                "🔥 蛋生动画"
+                "🔥 蛋神动画"
             }
             p { class: "text-lg", style: "{sub_s}",
                 "输入热点话题，AI 为你生成可爱动物主演的动漫视频"

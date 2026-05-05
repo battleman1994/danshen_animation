@@ -8,7 +8,7 @@ pub fn Footer() -> Element {
     let s = format!("color: {};", c.text_muted);
     rsx! {
         div { class: "text-center pb-8",
-            p { class: "text-xs", style: "{s}", "🔥 蛋生动画 · AI 驱动的动漫风格视频生成器" }
+            p { class: "text-xs", style: "{s}", "🔥 蛋神动画 · AI 驱动的动漫风格视频生成器" }
         }
     }
 }

@@ -2,7 +2,7 @@
 name = "danshen-animation"
 version = "0.1.0"
 edition = "2021"
-description = "🔥 单身动画 — AI 驱动的动漫风格视频生成器（Dioxus 跨平台版）"
+description = "🔥 蛋神动画 — AI 驱动的动漫风格视频生成器（Dioxus 跨平台版）"
 
 [features]
 default = ["desktop"]

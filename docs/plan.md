@@ -1,4 +1,4 @@
-# 🔥 单身动画 — 实现计划
+# 🔥 蛋神动画 — 实现计划
 
 > **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
 

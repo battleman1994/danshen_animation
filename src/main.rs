@@ -17,7 +17,7 @@ fn main() {
     {
         use dioxus::desktop::{Config, LogicalSize, WindowBuilder};
         let window = WindowBuilder::new()
-            .with_title("🔥 蛋生动画 — Danshen Animation")
+            .with_title("🔥 蛋神动画 — Danshen Animation")
             .with_min_inner_size(LogicalSize::new(600.0, 700.0))
             .with_inner_size(LogicalSize::new(800.0, 900.0));
         LaunchBuilder::desktop().with_cfg(Config::new().with_window(window)).launch(App);
