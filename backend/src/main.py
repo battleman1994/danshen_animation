@@ -15,21 +15,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
-from .routes import tasks, animate, auth
+from .routes import tasks, animate, auth, admin
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期"""
-    # 启动时
-    settings.output_dir.mkdir(parents=True, exist_ok=True)
-    (settings.output_dir / "audio").mkdir(exist_ok=True)
-    (settings.output_dir / "videos").mkdir(exist_ok=True)
-    (settings.output_dir / "characters").mkdir(exist_ok=True)
-    (settings.output_dir / "backgrounds").mkdir(exist_ok=True)
     print(f"🚀 {settings.app_name} started on http://{settings.host}:{settings.port}")
     yield
-    # 关闭时
     print("👋 Shutting down...")
 
 
@@ -49,6 +42,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 确保输出目录存在（在 StaticFiles 挂载前）
+settings.output_dir.mkdir(parents=True, exist_ok=True)
+
 # 静态文件服务（输出视频和图片）
 app.mount("/output", StaticFiles(directory=str(settings.output_dir)), name="output")
 
@@ -56,6 +52,7 @@ app.mount("/output", StaticFiles(directory=str(settings.output_dir)), name="outp
 app.include_router(animate.router, prefix=settings.api_prefix)
 app.include_router(tasks.router, prefix=settings.api_prefix)
 app.include_router(auth.router, prefix=settings.api_prefix)
+app.include_router(admin.router, prefix=settings.api_prefix)
 
 
 @app.get("/")

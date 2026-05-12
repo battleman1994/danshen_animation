@@ -36,3 +36,30 @@ class TestSettings:
         from pathlib import Path
         settings = Settings()
         assert isinstance(settings.output_dir, Path)
+
+    def test_sd_model_default(self):
+        settings = Settings()
+        assert settings.sd_model == "sd_1.5_base.safetensors"
+
+    def test_lora_model_paths(self):
+        settings = Settings()
+        assert "tabby_cat" in settings.lora_model_paths
+        assert settings.lora_model_paths["tabby_cat"] == "tabby_cat_lora.safetensors"
+
+    def test_lora_weights(self):
+        settings = Settings()
+        assert "tabby_cat" in settings.lora_weights
+        assert 0.0 < settings.lora_weights["tabby_cat"] <= 1.0
+
+    def test_default_seed(self):
+        settings = Settings()
+        assert settings.default_seed == 42
+
+    def test_ken_burns_default(self):
+        settings = Settings()
+        assert settings.use_ken_burns is True
+
+    def test_sd_image_dimensions(self):
+        settings = Settings()
+        assert settings.sd_image_width == 768
+        assert settings.sd_image_height == 512

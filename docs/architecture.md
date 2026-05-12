@@ -6,7 +6,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                        客户端层                              │
 │  ┌──────────┐    ┌──────────────┐    ┌──────────────────┐  │
-│  │ iOS App  │    │ Web Browser  │    │ Windows Desktop  │  │
+│  │ macOS App │    │ Web Browser  │    │ Windows Desktop  │  │
 │  │ SwiftUI  │    │ Next.js+React│    │    Electron      │  │
 │  └────┬─────┘    └──────┬───────┘    └────────┬─────────┘  │
 │       │                 │                     │             │
@@ -152,5 +152,5 @@
 | 口型同步 | Wav2Lip / SadTalker | 开源方案 |
 | 存储 | MinIO / S3 | 对象存储 |
 | Web 前端 | Next.js 14 + Tailwind | 现代化框架 |
-| iOS | SwiftUI + AVFoundation | 原生体验 |
+| macOS | SwiftUI + AVFoundation | 原生体验 |
 | Windows | Electron + React | 跨平台桌面 |

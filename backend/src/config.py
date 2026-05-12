@@ -21,9 +21,9 @@ class Settings(BaseSettings):
 
     # ── AI 模型 ──
     llm_provider: str = "deepseek"  # deepseek, openai, anthropic
-    llm_model: str = "deepseek-chat"
+    llm_model: str = "deepseek-v4-pro[1m]"
     llm_api_key: Optional[str] = None
-    llm_base_url: str = "https://api.deepseek.com"
+    llm_base_url: str = "https://api.deepseek.com/anthropic"
 
     # ── Whisper ──
     whisper_model: str = "base"  # tiny, base, small, medium, large-v3
@@ -37,6 +37,38 @@ class Settings(BaseSettings):
     # ── 图片生成 ──
     image_gen_provider: str = "comfyui"  # comfyui, openai, stability
     comfyui_url: str = "http://localhost:8188"
+    sd_model: str = "sd_1.5_base.safetensors"
+    sd_image_width: int = 768
+    sd_image_height: int = 512
+    default_seed: int = 42
+    use_ken_burns: bool = True
+
+    # ── 视频生成 API ──
+    video_gen_provider: str = "mock"
+    kling_api_key: str | None = None
+    kling_model: str = "kling-v1"
+    runway_api_key: str | None = None
+    jimeng_api_key: str | None = None
+    jimeng_secret: str | None = None
+    hailuo_api_key: str | None = None
+
+    # ── LoRA ──
+    lora_model_paths: dict = {
+        "tabby_cat": "tabby_cat_lora.safetensors",
+        "brown_bear": "brown_bear_lora.safetensors",
+        "little_fox": "little_fox_lora.safetensors",
+        "panda": "panda_lora.safetensors",
+        "rabbit": "rabbit_lora.safetensors",
+        "shiba_inu": "shiba_inu_lora.safetensors",
+        "owl": "owl_lora.safetensors",
+        "penguin": "penguin_lora.safetensors",
+        "lion": "lion_lora.safetensors",
+    }
+    lora_weights: dict = {
+        "tabby_cat": 0.8, "brown_bear": 0.8, "little_fox": 0.7,
+        "panda": 0.8, "rabbit": 0.7, "shiba_inu": 0.7,
+        "owl": 0.75, "penguin": 0.75, "lion": 0.8,
+    }
 
     # ── Redis / Celery ──
     redis_url: str = "redis://localhost:6379/0"

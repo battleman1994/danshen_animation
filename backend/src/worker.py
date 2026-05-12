@@ -1,15 +1,12 @@
-"""
-Celery Worker — 异步视频生成任务
-
-启动方式:
-  celery -A src.worker worker --loglevel=info --concurrency=2
-"""
-
 import asyncio
+import logging
+from pathlib import Path
 
 from celery import Celery
 
 from .config import settings
+
+logger = logging.getLogger(__name__)
 
 celery_app = Celery(
     "danshen_animation",
@@ -24,71 +21,61 @@ celery_app.conf.update(
     timezone="Asia/Shanghai",
     enable_utc=True,
     task_track_started=True,
-    task_time_limit=settings.max_video_duration + 60,
-    task_soft_time_limit=settings.max_video_duration + 30,
+    task_time_limit=settings.max_video_duration + 120,
+    task_soft_time_limit=settings.max_video_duration + 90,
 )
 
 
 @celery_app.task(bind=True, name="generate_animation")
 def generate_animation(self, task_data: dict):
-    """
-    异步生成动漫视频
+    """异步视频生成任务 — 多模态分析 → 提示词 → 第三方 API 生成视频"""
 
-    Args:
-        task_data: 包含 source, source_type, character 等
-    """
     async def _run():
-        from .pipeline import (
-            ContentExtractor, ScriptAdapter, CharacterGenerator,
-            VoiceSynthesizer, VideoComposer,
-        )
+        from .pipeline import PromptBuilder, get_provider, supports_input_type
 
         task_id = self.request.id
-        source = task_data["source"]
-        source_type = task_data.get("source_type", "text")
+        text = task_data["source"]
         character = task_data.get("character", "tabby_cat")
-        character_count = task_data.get("character_count", 2)
-        style = task_data.get("style", "auto")
-        resolution = task_data.get("resolution", "1080p")
-        subtitle = task_data.get("subtitle", True)
+        style = task_data.get("style", "funny")
+        provider_id = task_data.get("provider", "mock")
+        llm_model = task_data.get("llm_model") or settings.llm_model
+        source_type = task_data.get("source_type", "text")
 
-        # 阶段 1：内容提取
-        self.update_state(state="EXTRACTING", meta={"progress": 10})
-        extractor = ContentExtractor()
-        content = await extractor.extract(source, source_type)
+        # 检查 LLM 模型是否支持该输入类型
+        if not supports_input_type(llm_model, source_type):
+            raise ValueError(
+                f"LLM 模型 {llm_model} 不支持 {source_type} 类型的输入，请选择多模态模型"
+            )
 
-        # 阶段 2：脚本改编
-        self.update_state(state="ADAPTING", meta={"progress": 30})
-        adapter = ScriptAdapter()
-        script = await adapter.adapt(content, character, character_count, style)
+        # Stage 1: Multimodal analysis → video prompt
+        self.update_state(state="GENERATING_PROMPT", meta={"progress": 15})
+        builder = PromptBuilder(model_id=llm_model)
+        video_prompt = await builder.build(
+            content=text,
+            character=character,
+            style=style,
+        )
 
-        # 阶段 3：角色生成
-        self.update_state(state="GENERATING_CHARACTERS", meta={"progress": 50})
-        char_gen = CharacterGenerator()
-        character_images = await char_gen.generate_character_set(character)
-        background = await char_gen.generate_background(script.background_mood)
+        # Stage 2: Submit prompt to third-party video API
+        self.update_state(state="GENERATING_VIDEO", meta={"progress": 30})
+        provider = get_provider(provider_id)
 
-        # 阶段 4：语音合成
-        self.update_state(state="SYNTHESIZING_VOICE", meta={"progress": 70})
-        voice_synth = VoiceSynthesizer()
-        audio_segments = await voice_synth.synthesize_script(script)
+        video_dir = settings.output_dir / "videos"
+        video_dir.mkdir(parents=True, exist_ok=True)
+        final_path = video_dir / f"{task_id}.mp4"
 
-        # 阶段 5：视频合成
-        self.update_state(state="COMPOSING_VIDEO", meta={"progress": 85})
-        composer = VideoComposer()
-        video_path = await composer.compose(
-            task_id=task_id,
-            character_images=character_images,
-            background_path=background,
-            audio_segments=audio_segments,
-            subtitle_lines=[],
-            resolution=resolution,
+        await provider.generate(
+            prompt=video_prompt.prompt,
+            duration_s=video_prompt.duration_estimate,
+            output_path=final_path,
         )
 
         return {
             "video_url": f"/output/videos/{task_id}.mp4",
-            "video_path": str(video_path),
-            "duration": sum(s.get("duration", 0) for s in audio_segments),
+            "video_path": str(final_path),
+            "prompt": video_prompt.prompt,
+            "title": video_prompt.title,
+            "duration_estimate": video_prompt.duration_estimate,
         }
 
     loop = asyncio.new_event_loop()

@@ -2,9 +2,9 @@
 
 > **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
 
-**Goal:** 构建 AI 驱动的动漫风格视频生成器，支持 iOS / Web / Windows 三端
+**Goal:** 构建 AI 驱动的动漫风格视频生成器，支持 macOS / Web / Windows 三端
 
-**Architecture:** FastAPI 后端 + 五阶段视频生成流水线 + Next.js Web + SwiftUI iOS + Electron Windows
+**Architecture:** FastAPI 后端 + 五阶段视频生成流水线 + Next.js Web + SwiftUI macOS + Electron Windows
 
 **Tech Stack:** Python/FastAPI, Whisper, ComfyUI/SDXL, Edge-TTS, FFmpeg, Next.js, SwiftUI, Electron
 
@@ -222,14 +222,14 @@ cd web && npm install && npm run dev
 
 ---
 
-## Phase 4: iOS App
+## Phase 4: macOS App
 
 ### Task 4.1: SwiftUI 项目配置
 
 **Objective:** 完善 Xcode 项目配置
 
 **Files:**
-- Create: `ios/DanshenAnimation.xcodeproj/`
+- Create: `macos/DanshenAnimation.xcodeproj/`
 
 **Step 1:** 在 Xcode 中打开项目
 **Step 2:** 配置 Info.plist（网络权限等）
@@ -240,8 +240,8 @@ cd web && npm install && npm run dev
 **Objective:** 连接后端 API
 
 **Files:**
-- Create: `ios/DanshenAnimation/APIService.swift`
-- Modify: `ios/DanshenAnimation/ContentView.swift`
+- Create: `macos/DanshenAnimation/APIService.swift`
+- Modify: `macos/DanshenAnimation/ContentView.swift`
 
 **Step 1:** 实现网络请求层
 **Step 2:** 实现任务轮询
@@ -310,6 +310,6 @@ docker-compose up -d
 | M2: 视频源 | 支持抖音/B站链接 | +1 周 |
 | M3: Web 端 | 完整 Web 前端 | +1 周 |
 | M4: 角色系统 | 8个角色 + 情绪表情 | +1 周 |
-| M5: iOS 端 | SwiftUI App 上架 | +2 周 |
+| M5: macOS 端 | SwiftUI App 上架 | +2 周 |
 | M6: Windows 端 | Electron 打包发布 | +1 周 |
 | M7: 生产就绪 | Docker + CI/CD + 监控 | +1 周 |

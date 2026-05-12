@@ -43,3 +43,4 @@ docker-compose.override.yml
 
 # Local project config
 .hermes/
+.gstack/

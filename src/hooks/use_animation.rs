@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use crate::api::client;
+use crate::config::local_config;
 use crate::components::constants::get_status_label;
 use crate::components::types::*;
 
@@ -11,6 +12,10 @@ pub struct UseAnimation {
     pub character: Signal<String>,
     pub character_count: Signal<u32>,
     pub style: Signal<String>,
+    pub provider: Signal<String>,
+    pub providers: Signal<Vec<ProviderInfo>>,
+    pub llm_model: Signal<String>,
+    pub llm_models: Signal<Vec<LLMModelInfo>>,
     pub loading: Signal<bool>,
     pub progress: Signal<u32>,
     pub status_text: Signal<String>,
@@ -25,12 +30,34 @@ impl UseAnimation {
     pub fn character(&self) -> String { self.character.read().clone() }
     pub fn character_count(&self) -> u32 { *self.character_count.read() }
     pub fn style(&self) -> String { self.style.read().clone() }
+    pub fn provider(&self) -> String { self.provider.read().clone() }
+    pub fn providers(&self) -> Vec<ProviderInfo> { self.providers.read().clone() }
+    pub fn llm_model(&self) -> String { self.llm_model.read().clone() }
+    pub fn llm_models(&self) -> Vec<LLMModelInfo> { self.llm_models.read().clone() }
     pub fn loading(&self) -> bool { *self.loading.read() }
     pub fn progress(&self) -> u32 { *self.progress.read() }
     pub fn status_text(&self) -> String { self.status_text.read().clone() }
     pub fn result(&self) -> Option<String> { self.result.read().clone() }
     pub fn error(&self) -> Option<String> { self.error.read().clone() }
-    pub fn can_submit(&self) -> bool { !self.source.read().trim().is_empty() && !*self.loading.read() }
+    pub fn can_submit(&self) -> bool {
+        if self.source.read().trim().is_empty() || *self.loading.read() {
+            return false;
+        }
+        let st = self.source_type.read().as_str().to_string();
+        let model_id = self.llm_model.read().clone();
+        for m in self.llm_models.read().iter() {
+            if m.id == model_id {
+                return m.available && m.supported_input_types.contains(&st);
+            }
+        }
+        let prov_id = self.provider.read().clone();
+        for p in self.providers.read().iter() {
+            if p.id == prov_id {
+                return p.available && p.supported_input_types.contains(&st);
+            }
+        }
+        true
+    }
 
     pub fn handle_reset(&mut self) {
         self.source.set(String::new()); self.result.set(None);
@@ -48,9 +75,11 @@ impl UseAnimation {
             source: self.source.read().clone(),
             source_type: self.source_type.read().as_str().to_string(),
             character: self.character.read().clone(),
-            character_count: *self.character_count.read(),
             style: self.style.read().clone(),
-            scene_mode: self.scene_mode.read().as_str().to_string(),
+            provider: self.provider.read().clone(),
+            llm_model: self.llm_model.read().clone(),
+            resolution: "1080p".to_string(),
+            subtitle: true,
         };
         let mut loading = self.loading.clone();
         let mut progress = self.progress.clone();
@@ -102,7 +131,77 @@ impl UseAnimation {
     }
 }
 
+/// 将本地 LLM 配置合并到内置模型列表
+fn merge_llm_models(remote: Vec<LLMModelInfo>) -> Vec<LLMModelInfo> {
+    let cfg = local_config::load_config();
+    let mut models = remote;
+    for lc in &cfg.llm_models {
+        models.push(LLMModelInfo {
+            id: lc.id.clone(),
+            name: lc.name.clone(),
+            provider: lc.provider.clone(),
+            supported_input_types: lc.supported_input_types.clone(),
+            available: !lc.api_key.is_empty(),
+            mode: "local".into(),
+            requires_config: vec![],
+        });
+    }
+    models
+}
+
+/// 将本地视频配置合并到内置 provider 列表
+fn merge_providers(remote: Vec<ProviderInfo>) -> Vec<ProviderInfo> {
+    let cfg = local_config::load_config();
+    let mut providers = remote;
+    for lc in &cfg.video_providers {
+        providers.push(ProviderInfo {
+            id: lc.id.clone(),
+            name: lc.name.clone(),
+            description: format!("本地配置 — {}", lc.provider),
+            available: !lc.api_key.is_empty(),
+            supported_input_types: lc.supported_input_types.clone(),
+            mode: "local".into(),
+            requires_config: vec![],
+        });
+    }
+    providers
+}
+
 pub fn use_animation() -> UseAnimation {
+    let providers_signal = use_signal(|| Vec::<ProviderInfo>::new());
+    let llm_models_signal = use_signal(|| Vec::<LLMModelInfo>::new());
+
+    let mut p = providers_signal.clone();
+    spawn(async move {
+        if let Ok(resp) = client::fetch_providers().await {
+            p.set(merge_providers(resp.providers));
+        } else {
+            // 离线：至少展示本地配置
+            p.set(merge_providers(vec![]));
+        }
+    });
+    let mut lm = llm_models_signal.clone();
+    spawn(async move {
+        if let Ok(resp) = client::fetch_llm_models().await {
+            lm.set(merge_llm_models(resp.models));
+        } else {
+            lm.set(merge_llm_models(vec![]));
+        }
+    });
+
+    // 从本地配置读取默认值
+    let cfg = local_config::load_config();
+    let default_llm = if cfg.default_llm.is_empty() {
+        "deepseek-v4-pro[1m]".into()
+    } else {
+        cfg.default_llm.clone()
+    };
+    let default_provider = if cfg.default_video.is_empty() {
+        "mock".into()
+    } else {
+        cfg.default_video.clone()
+    };
+
     UseAnimation {
         scene_mode: use_signal(|| SceneMode::Auto),
         source: use_signal(String::new),
@@ -110,6 +209,10 @@ pub fn use_animation() -> UseAnimation {
         character: use_signal(|| String::from("tabby_cat")),
         character_count: use_signal(|| 2u32),
         style: use_signal(|| String::from("auto")),
+        provider: use_signal(|| default_provider),
+        providers: providers_signal,
+        llm_model: use_signal(|| default_llm),
+        llm_models: llm_models_signal,
         loading: use_signal(|| false),
         progress: use_signal(|| 0u32),
         status_text: use_signal(String::new),

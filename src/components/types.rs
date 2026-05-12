@@ -22,7 +22,15 @@ pub struct Character { pub id: &'static str, pub name: &'static str, pub emoji: 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Style { pub id: &'static str, pub label: &'static str }
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnimateRequest { pub source: String, pub source_type: String, pub character: String, pub character_count: u32, pub style: String, pub scene_mode: String }
+pub struct AnimateRequest { pub source: String, pub source_type: String, pub character: String, pub style: String, pub provider: String, pub llm_model: String, pub resolution: String, pub subtitle: bool }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProviderInfo { pub id: String, pub name: String, pub description: String, pub available: bool, pub supported_input_types: Vec<String>, pub mode: String, pub requires_config: Vec<String> }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProviderListResponse { pub providers: Vec<ProviderInfo>, pub active: String }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LLMModelInfo { pub id: String, pub name: String, pub provider: String, pub supported_input_types: Vec<String>, pub available: bool, pub mode: String, pub requires_config: Vec<String> }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LLMModelListResponse { pub models: Vec<LLMModelInfo>, pub active: String }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskResponse { pub task_id: Option<String>, pub error: Option<String> }
 #[derive(Debug, Clone, Serialize, Deserialize)]

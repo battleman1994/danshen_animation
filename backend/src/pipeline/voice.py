@@ -14,7 +14,8 @@ from typing import Optional
 import edge_tts
 
 from ..config import settings
-from .adapter import AdaptedScript, ScriptLine
+from .adapter import AdaptedScript, ScriptLine, CHARACTER_TEMPLATES
+from .storyboard import Storyboard
 
 
 class VoiceSynthesizer:
@@ -54,6 +55,32 @@ class VoiceSynthesizer:
             voice = self._get_voice_for_character(line.speaker, script.characters)
             audio_path = out_dir / f"line_{i:03d}_{line.speaker}.mp3"
             tasks.append(self._synthesize_line(line, voice, audio_path, i))
+
+        results = await asyncio.gather(*tasks)
+        return [r for r in results if r is not None]
+
+    async def synthesize_storyboard(
+        self,
+        storyboard: Storyboard,
+        output_dir: Optional[Path] = None,
+    ) -> list[dict]:
+        out_dir = output_dir or self.output_dir
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        tasks = []
+        for scene in storyboard.scenes:
+            voice = CHARACTER_TEMPLATES.get(scene.character, {}).get(
+                "voice", settings.tts_voice
+            )
+            rate, pitch = self._emotion_to_tts_params(scene.emotion)
+            audio_path = out_dir / f"scene_{scene.index:02d}.mp3"
+
+            line = ScriptLine(
+                speaker=scene.character,
+                text=scene.dialogue,
+                emotion=scene.emotion,
+            )
+            tasks.append(self._synthesize_line(line, voice, audio_path, scene.index))
 
         results = await asyncio.gather(*tasks)
         return [r for r in results if r is not None]

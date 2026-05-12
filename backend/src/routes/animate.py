@@ -1,53 +1,60 @@
-"""
-POST /api/v1/animate — 提交视频生成任务
-
-输入热点内容（文字/链接/图片），生成动漫配音视频。
-"""
-
 import uuid
-from typing import Optional
+import logging
+from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/animate", tags=["animate"])
 
-# 内存中的任务存储（生产环境用 Redis）
+logger = logging.getLogger(__name__)
+
 _task_store: dict[str, dict] = {}
-_processing_queue: list[str] = []
 
 
 class AnimateRequest(BaseModel):
-    """视频生成请求"""
-    source: str = Field(..., description="输入内容：文字/URL/图片路径", min_length=1, max_length=5000)
-    source_type: str = Field(
-        default="text",
-        description="内容类型：text, douyin_video, bilibili_video, web_link, image, weibo_post, news",
-        pattern="^(text|douyin_video|bilibili_video|youtube_video|web_link|image|weibo_post|news)$"
+    source: str = Field(
+        ..., description="Input content for video generation",
+        min_length=1, max_length=5000,
     )
     character: str = Field(
         default="tabby_cat",
-        description="角色：tabby_cat, brown_bear, little_fox, panda, rabbit, shiba_inu, owl, penguin, lion",
-        pattern="^(tabby_cat|brown_bear|little_fox|panda|rabbit|shiba_inu|owl|penguin|lion)$"
+        description="Character ID",
+        pattern="^(tabby_cat|brown_bear|little_fox|panda|rabbit|shiba_inu|owl|penguin|lion)$",
     )
-    character_count: int = Field(default=2, ge=1, le=5, description="角色数量")
-    style: str = Field(default="auto", description="风格：auto, funny, serious, cute, news")
+    style: str = Field(
+        default="funny",
+        description="Style: funny, serious, cute, news, auto",
+        pattern="^(funny|serious|cute|news|auto)$",
+    )
+    provider: str = Field(default="mock", description="Video generation provider ID")
+    llm_model: str = Field(default="", description="LLM model for prompt generation (empty = use default)")
     resolution: str = Field(default="1080p", pattern="^(720p|1080p)$")
-    subtitle: bool = Field(default=True, description="是否添加字幕")
-    webhook_url: Optional[str] = Field(default=None, description="完成回调 URL")
+    subtitle: bool = Field(default=True)
 
 
 class AnimateResponse(BaseModel):
-    """提交响应"""
     task_id: str
     status: str = "queued"
-    estimated_time: int = 120  # 预估秒数
     poll_url: str
+
+
+@router.get("/providers")
+async def list_providers():
+    from ..pipeline.video_gen import list_providers as _list
+    from ..config import settings as _settings
+    return {"providers": _list(), "active": _settings.video_gen_provider}
+
+
+@router.get("/llm-models")
+async def list_llm_models():
+    from ..pipeline.prompt_builder import list_llm_models as _list
+    from ..config import settings as _settings
+    return {"models": _list(), "active": _settings.llm_model}
 
 
 @router.post("", response_model=AnimateResponse)
 async def create_animation(request: AnimateRequest, background_tasks: BackgroundTasks):
-    """提交视频生成任务"""
     task_id = f"anim_{uuid.uuid4().hex[:12]}"
 
     _task_store[task_id] = {
@@ -59,104 +66,69 @@ async def create_animation(request: AnimateRequest, background_tasks: Background
         "error": None,
     }
 
-    _processing_queue.append(task_id)
-
-    # 异步处理（简化版，生产环境用 Celery）
     background_tasks.add_task(_process_task, task_id)
 
     return AnimateResponse(
         task_id=task_id,
         status="queued",
-        estimated_time=120,
         poll_url=f"/api/v1/tasks/{task_id}",
     )
 
 
 async def _process_task(task_id: str):
-    """后台处理视频生成任务"""
-    from ..pipeline import (
-        ContentExtractor, ScriptAdapter, CharacterGenerator,
-        VoiceSynthesizer, VideoComposer,
-    )
+    from ..pipeline import PromptBuilder, get_provider, supports_input_type
     from ..config import settings as cfg
 
     task = _task_store[task_id]
     req = task["request"]
 
     try:
-        # 阶段 1：内容提取
-        task["status"] = "extracting"
-        task["progress"] = 10
-        extractor = ContentExtractor()
-        content = await extractor.extract(req["source"], req["source_type"])
+        llm_model = req.get("llm_model") or cfg.llm_model
+        source_type = req.get("source_type", "text")
 
-        # 阶段 2：脚本改编
-        task["status"] = "adapting"
-        task["progress"] = 30
-        adapter = ScriptAdapter()
-        style = req["style"] if req["style"] != "auto" else _auto_style(content.emotion)
-
-        # 新闻类型特殊处理：用新闻分析器自动匹配角色
-        if req["source_type"] == "news":
-            if content.news_analysis:
-                news_char = content.news_analysis.get("suggested_character", req["character"])
-                broadcast_style = content.news_analysis.get("broadcast_style", "轻松调侃")
-                script = await adapter.adapt_news(
-                    content, character=news_char, broadcast_style=broadcast_style,
-                )
-                req["character"] = news_char  # 更新为分析出的角色
-            else:
-                script = await adapter.adapt_news(content, character=req["character"])
-        else:
-            script = await adapter.adapt(
-                content, character=req["character"],
-                character_count=req["character_count"], style=style,
+        # 检查 LLM 模型是否支持该输入类型
+        if not supports_input_type(llm_model, source_type):
+            raise ValueError(
+                f"LLM 模型 {llm_model} 不支持 {source_type} 类型的输入，请选择多模态模型"
             )
 
-        # 阶段 3：角色生成
-        task["status"] = "generating_characters"
-        task["progress"] = 50
-        char_gen = CharacterGenerator()
-        character_images = await char_gen.generate_character_set(req["character"])
-        background = await char_gen.generate_background(script.background_mood)
+        # Stage 1: Prompt generation — content → AI video prompt
+        task["status"] = "generating_prompt"
+        task["progress"] = 15
+        builder = PromptBuilder(model_id=llm_model)
+        video_prompt = await builder.build(
+            content=req["source"],
+            character=req["character"],
+            style=req["style"],
+        )
 
-        # 阶段 4：语音合成
-        task["status"] = "synthesizing_voice"
-        task["progress"] = 70
-        voice_synth = VoiceSynthesizer()
-        audio_segments = await voice_synth.synthesize_script(script)
+        # Stage 2: Video generation — submit prompt to third-party API
+        task["status"] = "generating_video"
+        task["progress"] = 30
+        provider = get_provider(req.get("provider", "mock"))
 
-        # 阶段 5：视频合成
-        task["status"] = "composing_video"
-        task["progress"] = 85
-        composer = VideoComposer()
-        video_path = await composer.compose(
-            task_id=task_id,
-            character_images=character_images,
-            background_path=background,
-            audio_segments=audio_segments,
-            subtitle_lines=[],
-            resolution=req["resolution"],
+        video_dir = cfg.output_dir / "videos"
+        video_dir.mkdir(parents=True, exist_ok=True)
+        final_path = video_dir / f"{task_id}.mp4"
+
+        await provider.generate(
+            prompt=video_prompt.prompt,
+            duration_s=video_prompt.duration_estimate,
+            output_path=final_path,
         )
 
         task["status"] = "completed"
         task["progress"] = 100
         task["result"] = {
             "video_url": f"/output/videos/{task_id}.mp4",
-            "video_path": str(video_path),
-            "duration": sum(s.get("duration", 0) for s in audio_segments),
+            "video_path": str(final_path),
+            "prompt": video_prompt.prompt,
+            "title": video_prompt.title,
+            "duration_estimate": video_prompt.duration_estimate,
+            "llm_model": video_prompt.model_used,
         }
 
     except Exception as e:
+        logger.exception("Task %s failed", task_id)
         task["status"] = "failed"
         task["error"] = str(e)
-
-
-def _auto_style(emotion: str) -> str:
-    """根据情绪自动选择风格"""
-    style_map = {
-        "funny": "funny", "happy": "funny",
-        "serious": "serious", "sad": "serious",
-        "neutral": "cute",
-    }
-    return style_map.get(emotion, "funny")

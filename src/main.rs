@@ -4,6 +4,7 @@
 mod app;
 mod api;
 mod components;
+mod config;
 mod hooks;
 mod styles;
 
