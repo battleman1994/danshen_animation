@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use crate::styles::theme::use_theme;
 use crate::components::logo::Logo;
-use crate::components::user::AuthBar;
 
 #[component]
 pub fn Header() -> Element {
@@ -21,19 +20,14 @@ pub fn Header() -> Element {
 
     rsx! {
         div { class: "text-center mb-12 animate-fade-up",
-            // 顶部栏：Logo + 主题切换 + 登录
             div { class: "flex items-center justify-between mb-5",
-                // Logo 区域
                 div { class: "flex items-center gap-2",
                     Logo {}
                     span { class: "font-bold text-lg hidden sm:inline", style: "color: {c.text_primary};",
                         "蛋神动画"
                     }
                 }
-
-                // 右侧：主题切换 + 登录
                 div { class: "flex items-center gap-2",
-                    // 主题切换按钮
                     button {
                         class: "inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium",
                         style: "{badge_s} cursor: pointer;",
@@ -42,13 +36,8 @@ pub fn Header() -> Element {
                         span { "{t.icon()}" }
                         span { class: "hidden sm:inline", "{t.label()}" }
                     }
-
-                    // 用户登录/AuthBar
-                    AuthBar {}
                 }
             }
-
-            // 标题区域
             h1 {
                 class: "text-5xl md:text-6xl font-bold mb-4",
                 style: "{title_s}",
@@ -57,9 +46,6 @@ pub fn Header() -> Element {
             p { class: "text-lg", style: "{sub_s}",
                 "输入热点话题，AI 为你生成可爱动物主演的动漫视频"
             }
-
-            // 认证提示条（未登录时显示）
-            // (AuthBar 已经内嵌在顶部栏了)
         }
     }
 }

@@ -12,7 +12,6 @@ use crate::components::progress_bar::ProgressBar;
 use crate::components::result_card::ResultCard;
 use crate::components::config_modal::ConfigModal;
 use crate::components::types::SceneMode;
-use crate::components::user::use_user_provider;
 use crate::hooks::use_animation::use_animation;
 use crate::styles::theme::use_theme_provider;
 use crate::styles::STYLE_CSS;
@@ -21,7 +20,6 @@ use crate::styles::STYLE_CSS;
 pub fn App() -> Element {
     let theme_ctx = use_theme_provider();
     let c = theme_ctx.colors();
-    let _auth = use_user_provider();
 
     let mut anim = use_animation();
     let scene_mode = anim.scene_mode();

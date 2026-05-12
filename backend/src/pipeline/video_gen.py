@@ -7,63 +7,8 @@ from pathlib import Path
 from typing import Optional
 
 from ..config import settings
-from .storyboard import StoryboardScene
 
 logger = logging.getLogger(__name__)
-
-# ── Prompt builder (shared across all providers) ──
-
-EMOTION_CN = {
-    "happy": "开心地笑着，眼睛弯成月牙",
-    "sad": "难过地垂着眼，耳朵耷拉下来",
-    "funny": "哈哈大笑，眼泪都笑出来了",
-    "serious": "表情严肃认真，眉头微皱",
-    "surprised": "惊讶地瞪大眼睛，嘴巴微张",
-    "angry": "气鼓鼓的样子，脸颊鼓起",
-    "neutral": "表情平静自然",
-}
-
-ACTION_CN = {
-    "waving_paw": "挥着爪子打招呼", "nodding": "点着头",
-    "pointing": "伸出爪子指着前方", "shrugging": "耸了耸肩",
-    "jumping": "开心地跳了起来", "sitting": "端坐着",
-    "walking": "慢慢走着", "": "自然地站着",
-}
-
-CAMERA_CN = {"medium_shot": "半身镜头", "close_up": "特写镜头", "wide_shot": "全身镜头"}
-
-BG_CN = {
-    "sunny_park": "阳光明媚的公园，绿草地，蓝天白云",
-    "cozy_room": "温馨舒适的房间，暖光，可爱家具",
-    "city_street": "干净的城市街道，建筑背景",
-    "simple_studio": "简洁的渐变背景，干净",
-    "flower_garden": "花园里，鲜花盛开，柔和色彩",
-    "news_studio": "专业新闻演播室，暖光，干净现代",
-    "beach": "热带海滩，蓝天碧海，阳光灿烂",
-    "night_sky": "夜空，星星闪烁，梦幻",
-}
-
-PROMPT_TEMPLATES = {
-    "tabby_cat": "一只可爱的橘色虎斑猫，绿色大眼睛，橙色条纹毛发，{emotion}，{action}，{camera}，{bg}，chibi动漫风格，柔和光影，高质量",
-    "little_fox": "一只机灵的橙色小狐狸，大耳朵，蓬松尾巴，{emotion}，{action}，{camera}，{bg}，chibi动漫风格，明亮色彩，高质量",
-    "panda": "一只呆萌的熊猫，黑白毛发，慵懒眼神，{emotion}，{action}，{camera}，{bg}，kawaii风格，柔和粉彩色调，高质量",
-    "brown_bear": "一只稳重的棕色熊，戴圆眼镜，穿西装，{emotion}，{action}，{camera}，{bg}，chibi动漫风格，暖色调，高质量",
-    "shiba_inu": "一只阳光开朗的柴犬，奶油色毛发，蝴蝶领结，{emotion}，{action}，{camera}，{bg}，kawaii风格，明亮阳光，高质量",
-    "rabbit": "一只温柔的白色兔子，长耳朵，粉色鼻子，穿柔和连衣裙，{emotion}，{action}，{camera}，{bg}，梦幻柔光风格，高质量",
-    "owl": "一只博学的猫头鹰教授，半月眼镜，棕色羽毛，穿学术袍，{emotion}，{action}，{camera}，{bg}，温暖灯光风格，高质量",
-    "penguin": "一只可爱的帝企鹅幼崽，灰色绒毛，小眼镜，{emotion}，{action}，{camera}，{bg}，冰蓝背景，可爱风格，高质量",
-    "lion": "一只威严的金鬃雄狮，王者表情，穿正式主播西装，{emotion}，{action}，{camera}，{bg}，戏剧性灯光，专业风格，高质量",
-}
-
-
-def build_video_prompt(scene: StoryboardScene) -> str:
-    template = PROMPT_TEMPLATES.get(scene.character, PROMPT_TEMPLATES["tabby_cat"])
-    return template.format(
-        emotion=EMOTION_CN.get(scene.emotion, EMOTION_CN["neutral"]),
-        action=ACTION_CN.get(scene.action, scene.action or "自然地站着"),
-        camera=CAMERA_CN.get(scene.camera, "半身镜头"),
-        bg=BG_CN.get(scene.background, "简洁背景"),
-    )
 
 
 # ── Provider interface ──
@@ -405,17 +350,6 @@ def list_providers() -> list[dict]:
             "available": available,
         })
     return result
-
-
-def _check_sync(prov: VideoGenProvider) -> bool:
-    try:
-        import asyncio
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            return False  # can't check in running loop
-        return loop.run_until_complete(prov.health_check())
-    except Exception:
-        return False
 
 
 # Register built-in providers

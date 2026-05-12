@@ -17,6 +17,7 @@ class AnimateRequest(BaseModel):
         ..., description="Input content for video generation",
         min_length=1, max_length=5000,
     )
+    source_type: str = Field(default="text", description="Content type: text, web_link, image, douyin_video")
     character: str = Field(
         default="tabby_cat",
         description="Character ID",

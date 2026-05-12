@@ -8,14 +8,12 @@ API 路由：
 """
 
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from .config import settings
-from .routes import tasks, animate, auth, admin
+from .routes import animate, tasks
 
 
 @asynccontextmanager
@@ -33,7 +31,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS（允许所有前端访问）
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -42,17 +40,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 确保输出目录存在（在 StaticFiles 挂载前）
-settings.output_dir.mkdir(parents=True, exist_ok=True)
-
-# 静态文件服务（输出视频和图片）
-app.mount("/output", StaticFiles(directory=str(settings.output_dir)), name="output")
-
 # 注册路由
 app.include_router(animate.router, prefix=settings.api_prefix)
 app.include_router(tasks.router, prefix=settings.api_prefix)
-app.include_router(auth.router, prefix=settings.api_prefix)
-app.include_router(admin.router, prefix=settings.api_prefix)
 
 
 @app.get("/")
