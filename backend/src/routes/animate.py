@@ -2,7 +2,7 @@ import uuid
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Request
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/animate", tags=["animate"])
@@ -19,9 +19,9 @@ class AnimateRequest(BaseModel):
     )
     source_type: str = Field(default="text", description="Content type: text, web_link, image, douyin_video")
     character: str = Field(
-        default="tabby_cat",
+        default="orange_tabby",
         description="Character ID",
-        pattern="^(tabby_cat|brown_bear|little_fox|panda|rabbit|shiba_inu|owl|penguin|lion)$",
+        pattern="^(orange_tabby|calico_cat|black_cat|ragdoll_cat|british_shorthair|orange_cat_fat|panda)$",
     )
     style: str = Field(
         default="funny",
@@ -55,7 +55,7 @@ async def list_llm_models():
 
 
 @router.post("", response_model=AnimateResponse)
-async def create_animation(request: AnimateRequest, background_tasks: BackgroundTasks):
+async def create_animation(request: AnimateRequest, background_tasks: BackgroundTasks, req: Request = None):
     task_id = f"anim_{uuid.uuid4().hex[:12]}"
 
     _task_store[task_id] = {
@@ -67,7 +67,16 @@ async def create_animation(request: AnimateRequest, background_tasks: Background
         "error": None,
     }
 
-    background_tasks.add_task(_process_task, task_id)
+    # 可选：记录到 video_history（如果用户已登录）
+    user_id = ""
+    try:
+        from ..auth import get_current_user
+        user = await get_current_user(req)
+        user_id = user["id"]
+    except Exception:
+        pass
+
+    background_tasks.add_task(_process_task, task_id, user_id)
 
     return AnimateResponse(
         task_id=task_id,
@@ -76,31 +85,51 @@ async def create_animation(request: AnimateRequest, background_tasks: Background
     )
 
 
-async def _process_task(task_id: str):
+async def _process_task(task_id: str, user_id: str = ""):
     from ..pipeline import PromptBuilder, get_provider, supports_input_type
     from ..config import settings as cfg
 
     task = _task_store[task_id]
     req = task["request"]
 
+    # 写入 video_history 记录
+    history_id = ""
+    if user_id:
+        from ..database import get_db, new_id, now
+        history_id = new_id()
+        db = await get_db()
+        await db.execute(
+            """INSERT INTO video_history (id, user_id, task_id, source, source_type,
+               character_id, prompt_used, provider, llm_model, status, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, 'queued', ?)""",
+            (history_id, user_id, task_id, req["source"], req.get("source_type", "text"),
+             req["character"], req.get("provider", "mock"), req.get("llm_model", cfg.llm_model), now()),
+        )
+        await db.commit()
+
     try:
         llm_model = req.get("llm_model") or cfg.llm_model
         source_type = req.get("source_type", "text")
 
-        # 检查 LLM 模型是否支持该输入类型
         if not supports_input_type(llm_model, source_type):
             raise ValueError(
                 f"LLM 模型 {llm_model} 不支持 {source_type} 类型的输入，请选择多模态模型"
             )
+
+        # Stage 0: Content fetching — URL → plain text
+        from ..pipeline.content_fetcher import fetch_content
+        task["status"] = "extracting"
+        task["progress"] = 5
+        raw_content = await fetch_content(req["source"], source_type)
 
         # Stage 1: Prompt generation — content → AI video prompt
         task["status"] = "generating_prompt"
         task["progress"] = 15
         builder = PromptBuilder(model_id=llm_model)
         video_prompt = await builder.build(
-            content=req["source"],
+            content=raw_content,
             character=req["character"],
-            style=req["style"],
+            scene_mode=req.get("scene_mode", "auto"),
         )
 
         # Stage 2: Video generation — submit prompt to third-party API
@@ -129,7 +158,24 @@ async def _process_task(task_id: str):
             "llm_model": video_prompt.model_used,
         }
 
+        # 更新 video_history
+        if history_id:
+            await db.execute(
+                """UPDATE video_history SET status = 'completed', prompt_used = ?,
+                   video_url = ?, title = ?, duration_estimate = ? WHERE id = ?""",
+                (video_prompt.prompt, f"/output/videos/{task_id}.mp4",
+                 video_prompt.title, video_prompt.duration_estimate, history_id),
+            )
+            await db.commit()
+
     except Exception as e:
         logger.exception("Task %s failed", task_id)
         task["status"] = "failed"
         task["error"] = str(e)
+
+        if history_id:
+            await db.execute(
+                "UPDATE video_history SET status = 'failed', error = ? WHERE id = ?",
+                (str(e), history_id),
+            )
+            await db.commit()

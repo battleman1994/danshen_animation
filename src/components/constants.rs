@@ -1,15 +1,13 @@
 use crate::components::types::{Character, SceneMode, SourceType, Style};
 
 pub fn get_characters() -> Vec<Character> { vec![
-    Character { id: "tabby_cat", name: "狸花猫", emoji: "🐱", style: "活泼灵巧" },
-    Character { id: "brown_bear", name: "棕熊", emoji: "🐻", style: "稳重憨厚" },
-    Character { id: "little_fox", name: "小狐狸", emoji: "🦊", style: "机灵俏皮" },
-    Character { id: "panda", name: "熊猫", emoji: "🐼", style: "呆萌可爱" },
-    Character { id: "rabbit", name: "兔子", emoji: "🐰", style: "温柔敏捷" },
-    Character { id: "shiba_inu", name: "柴犬", emoji: "🐶", style: "忠诚阳光" },
-    Character { id: "owl", name: "猫头鹰", emoji: "🦉", style: "智慧专业" },
-    Character { id: "penguin", name: "企鹅", emoji: "🐧", style: "憨态可掬" },
-    Character { id: "lion", name: "雄狮", emoji: "🦁", style: "庄重威严" },
+    Character { id: "orange_tabby", name: "橘猫", emoji: "🐱", style: "活泼好动，表情丰富" },
+    Character { id: "calico_cat", name: "三花猫", emoji: "😺", style: "优雅灵动，聪明机敏" },
+    Character { id: "black_cat", name: "黑猫", emoji: "🐈‍⬛", style: "神秘呆萌，温柔粘人" },
+    Character { id: "ragdoll_cat", name: "布偶猫", emoji: "😻", style: "温顺可爱，软萌优雅" },
+    Character { id: "british_shorthair", name: "英短", emoji: "🐱", style: "憨态可掬，自带喜感" },
+    Character { id: "orange_cat_fat", name: "胖橘", emoji: "🍊", style: "贪吃贪睡，佛系慵懒" },
+    Character { id: "panda", name: "熊猫", emoji: "🐼", style: "呆萌可爱，国宝级萌物" },
 ] }
 pub fn get_scene_modes() -> Vec<SceneMode> { vec![SceneMode::Auto, SceneMode::Dialogue, SceneMode::News] }
 pub fn get_source_types() -> Vec<SourceType> { vec![SourceType::Text, SourceType::WebLink, SourceType::Image, SourceType::DouyinVideo] }

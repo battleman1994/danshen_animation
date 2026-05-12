@@ -206,7 +206,7 @@ pub fn use_animation() -> UseAnimation {
         scene_mode: use_signal(|| SceneMode::Auto),
         source: use_signal(String::new),
         source_type: use_signal(|| SourceType::Text),
-        character: use_signal(|| String::from("tabby_cat")),
+        character: use_signal(|| String::from("orange_tabby")),
         character_count: use_signal(|| 2u32),
         style: use_signal(|| String::from("auto")),
         provider: use_signal(|| default_provider),

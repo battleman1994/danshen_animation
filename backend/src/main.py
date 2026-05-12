@@ -13,12 +13,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routes import animate, tasks
+from .database import init_db
+from .routes import animate, tasks, auth, prompts, admin, history
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期"""
+    await init_db()
     print(f"🚀 {settings.app_name} started on http://{settings.host}:{settings.port}")
     yield
     print("👋 Shutting down...")
@@ -43,6 +45,10 @@ app.add_middleware(
 # 注册路由
 app.include_router(animate.router, prefix=settings.api_prefix)
 app.include_router(tasks.router, prefix=settings.api_prefix)
+app.include_router(auth.router, prefix=settings.api_prefix)
+app.include_router(prompts.router, prefix=settings.api_prefix)
+app.include_router(admin.router, prefix=settings.api_prefix)
+app.include_router(history.router, prefix=settings.api_prefix)
 
 
 @app.get("/")

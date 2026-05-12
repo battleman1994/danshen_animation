@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     jimeng_secret: str | None = None
     hailuo_api_key: str | None = None
 
+    # ── 数据库 ──
+    database_url: str = "sqlite:///./data/danshen.db"
+
+    # ── 会话 ──
+    session_expire_hours: int = 72
+
     # ── 输出 ──
     output_dir: Path = Path("./output")
 
